@@ -1,10 +1,15 @@
-# vscodeknowledgemap README
+# Visual Studio Code Knowledge Map  README
 
-This is the README for your extension "vscodeknowledgemap". After writing up a brief description, we recommend including the following sections.
+Knowledge and relationship tooling for Visual Studio which tracks relationships between concepts, files, and information within the folder that is open including sub folders. 
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+ This feature enables the following features:
+
+* Visual Relationship map between files and concepts in files.
+* Simple note taking and note linking functionality with markdown support. 
+* Code relationship visualisation
+* Summary Generation 
 
 For example if there is an image subfolder under your extension project workspace:
 
@@ -35,17 +40,9 @@ Calling out known issues can help limit users opening duplicate issues against y
 
 Users appreciate release notes as you update your extension.
 
-### 1.0.0
+### 0.0.1
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Created Repro and added base extention template
 
 ---
 
