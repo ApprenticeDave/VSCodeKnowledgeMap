@@ -14,7 +14,7 @@ const EX = $rdf.Namespace('http://example.org/');
 store.add($rdf.sym(EX('alice')), FOAF('name'), $rdf.literal('Alice'));
 store.add($rdf.sym(EX('alice')), FOAF('knows'), $rdf.sym(EX('bob')));
 store.add($rdf.sym(EX('bob')), FOAF('name'), $rdf.literal('Bob'));
-
+const test ="";
 // Query the store
 const query = $rdf.SPARQLToQuery(`
   PREFIX foaf: <http://xmlns.com/foaf/0.1/>
