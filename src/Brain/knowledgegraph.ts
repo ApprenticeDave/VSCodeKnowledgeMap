@@ -1,6 +1,8 @@
-import * as $rdf from 'rdflib';
+export class KnowledgeGraph{
 
+}
 
+/*
 // TODO - This is genai stuff need to work through this and fix to make it actually work
 
 // Create a new store
@@ -26,4 +28,4 @@ const query = $rdf.SPARQLToQuery(`
 
 store.query(query, (result) => {
   console.log(result['?name'].value);
-});
+});*/
