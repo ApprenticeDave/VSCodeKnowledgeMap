@@ -1,8 +1,16 @@
 import * as vscode from "vscode";
+import { EventMonitor } from "../Utils/EventMonitor";
 
 export class WebGLPanel implements Disposable {
   private webpanel: vscode.WebviewPanel | undefined;
-  constructor() {
+  private extensionUri: vscode.Uri;
+  private eventMonitor: EventMonitor = new EventMonitor();
+
+  constructor(context: vscode.ExtensionContext) {
+    this.extensionUri = context.extensionUri;
+
+    this.init();
+
     const mapViewDisposable = vscode.commands.registerCommand(
       "vscodeknowledgemap.OpenMapView",
       () => {
@@ -10,15 +18,87 @@ export class WebGLPanel implements Disposable {
           "vscodeknowledgemap.OpenMapView", // Identifies the type of the webview. Used internally
           "Knowledge Map", // Title of the panel displayed to the user
           vscode.ViewColumn.One, // Editor column to show the new webview panel in
-          { enableScripts: true } // Webview options. More on these later.
+          {
+            enableScripts: true,
+            localResourceRoots: [
+              vscode.Uri.joinPath(this.extensionUri, "media"),
+            ],
+          } // Webview options. More on these later.
         );
+
+        // Handle messages from the webview
+        this.webpanel.webview.onDidReceiveMessage(
+          (message) => {
+            switch (message.command) {
+              case "alert":
+                vscode.window.showInformationMessage(message.text);
+                return;
+            }
+          },
+          undefined,
+          context.subscriptions
+        );
+
+        this.init();
       }
     );
+  }
 
-    // panel.webview.html = getMapViewContent(
-    //   panel.webview,
-    //   context.extensionUri
-    // );
+  private init() {
+    if (this.extensionUri && this.webpanel) {
+      //setup scripts and styles
+      const scriptPathOnDisk = vscode.Uri.joinPath(
+        this.extensionUri,
+        "media",
+        "script.js"
+      );
+      const stylePathOnDisk = vscode.Uri.joinPath(
+        this.extensionUri,
+        "media",
+        "style.css"
+      );
+
+      this.webpanel.webview.html = this.getMapViewContent(
+        this.webpanel.webview,
+        this.extensionUri
+      );
+    }
+
+    this.eventMonitor.on("GLNodeAdded", (node) => {
+      if (this.webpanel) {
+        this.webpanel.webview.postMessage({
+          command: "NodeAdded",
+          node: node,
+        });
+      }
+    });
+
+    this.eventMonitor.on("GLNodeRemoved", (node) => {
+      if (this.webpanel) {
+        this.webpanel.webview.postMessage({
+          command: "NodeRemoved",
+          node: node,
+        });
+      }
+    });
+
+    this.eventMonitor.on("GLLinkAdded", (link) => {
+      if (this.webpanel) {
+        this.webpanel.webview.postMessage({
+          command: "LinkAdded",
+          node: link,
+        });
+      }
+    });
+
+    this.eventMonitor.on("GLLinkRemoved", (link) => {
+      if (this.webpanel) {
+        this.webpanel.webview.postMessage({
+          command: "LinkRemoved",
+          node: link,
+        });
+      }
+    });
   }
 
   [Symbol.dispose](): void {}
@@ -51,8 +131,8 @@ export class WebGLPanel implements Disposable {
                   <title>Knowledge Map</title>
                   <link href="${styleUri}" rel="stylesheet">
                 </head>
-                <body>
-                  <h1>Knowledge Map</h1>
+                <body>                  
+                  <canvas id="glCanvas" style="width:100%;height:100%"></canvas>
                   <script src="${scriptUri}"></script>
                 </body>
                 </html>`;
