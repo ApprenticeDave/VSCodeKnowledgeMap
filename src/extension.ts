@@ -32,7 +32,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   setTimeout(() => {
     knowledgeGraph.generateNodesAndEdgesForWorkspace();
-  }, 1000);
+  }, 5000);
 
   // Listen for workspace folder changes
   workspaceFolderChangeDisposable =

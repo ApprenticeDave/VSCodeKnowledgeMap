@@ -125,7 +125,9 @@ export class KnowledgeGraph {
         const edge = new Edge(
           `${node.id}-${directoryNode.id}`,
           node,
-          directoryNode
+          directoryNode,
+          "is a subdirectory of",
+          1
         );
         this.addEdge(edge);
 
@@ -136,7 +138,13 @@ export class KnowledgeGraph {
         const fileNode = new Node(entryPath, entryName, NodeType.File);
         this.addNode(fileNode);
         // Create an edge between the directory and the file
-        const edge = new Edge(`${node.id}-${fileNode.id}`, node, fileNode);
+        const edge = new Edge(
+          `${node.id}-${fileNode.id}`,
+          node,
+          fileNode,
+          "is a sub file of",
+          1
+        );
         this.addEdge(edge);
       }
     }

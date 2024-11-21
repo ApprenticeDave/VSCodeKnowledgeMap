@@ -168,12 +168,15 @@ export class WebGLPanel implements Disposable {
             <html lang="en">
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} http://unpkg.com/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+                <meta http-equiv="Content-Security-Policy" 
+                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} http://unpkg.com/  https://unpkg.com/three/build/three.module.js 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
                 />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
                 <link href="${styleUri}" rel="stylesheet">
+               
                 <script  nonce="${nonce}" crossorigin="anonymous" src="http://unpkg.com/3d-force-graph"></script>
+                <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
             </head>
             <body>
                 <div id="glCanvas"></div>
@@ -187,7 +190,7 @@ export class WebGLPanel implements Disposable {
                     }
                   });
                 </script>
-                <script  nonce="${nonce}" src="${scriptUri}"></script>
+                <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
             </body>
             </html>`;
   }

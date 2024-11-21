@@ -1,4 +1,5 @@
 //https://github.com/vasturiano/3d-force-graph?tab=readme-ov-file
+import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
 
 console.log("Knowledge View - Panel Script - DOM Loaded");
 let vscode;
@@ -27,7 +28,6 @@ window.addEventListener('message', event => {
       addEdge(message.node);
       break;
   }
-
 });
 
 function addNode(newNode) {
@@ -37,6 +37,7 @@ function addNode(newNode) {
   const graphnode = {
     id: newNode.id,
     name: newNode.name,
+    group: newNode.nodetype,
   };
 
   if (!nodes.includes(graphnode)) {
@@ -62,16 +63,17 @@ function addEdge(newEdge) {
   const graphedge = {
     source: newEdge.source.id,
     target: newEdge.target.id,
+    relationship: newEdge.relationship,
   };
 
   if (!links.includes(graphedge)) {
     links.push(graphedge);
     try {
       Graph.graphData({ nodes, links });
-      sendLogMessage(`Script - Edge added ${newEdge.source} -> ${newEdge.target}`, 'Info');
+      sendLogMessage(`Script - Edge added ${newEdge.source.id} -> ${newEdge.target.id}`, 'Info');
     } catch (e) {
       console.error('Knowledge View - Panel Script - Error adding edge', e);
-      sendLogMessage(`Script - Error adding edge ${newEdge.source} -> ${newEdge.target}`, 'Error');
+      sendLogMessage(`Script - Error adding edge ${newEdge.source.id} -> ${newEdge.target.id}`, 'Error');
     }
 
   } else {
@@ -93,7 +95,18 @@ function sendLogMessage(message, level) {
   }
 }
 
-const Graph = ForceGraph3D()(elem)
+const Graph = ForceGraph3D({
+  extraRenderers: [new CSS2DRenderer()]
+})(elem)
   .enableNodeDrag(false)
   .backgroundColor(backgroundcolour)
+  .nodeAutoColorBy('group')
+  .nodeThreeObjectExtend(true)
+  .nodeThreeObject(node => {
+    const nodeEl = document.createElement('div');
+    nodeEl.textContent = node.name;
+    nodeEl.style.color = node.color;
+    nodeEl.className = 'node-label';
+    return new CSS2DObject(nodeEl);
+  })
   .graphData(initData);
