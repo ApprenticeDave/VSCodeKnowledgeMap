@@ -7,10 +7,11 @@ export enum LogLevel {
 }
 
 export class Utils {
-  private static outputChannel =
-    vscode.window.createOutputChannel("Knowledge Map");
+  private static outputChannel: vscode.OutputChannel;
 
-  constructor() {}
+  constructor() {
+    Utils.outputChannel = vscode.window.createOutputChannel("Knowledge Map");
+  }
 
   public static log(message: string, level: LogLevel = LogLevel.Info) {
     const timestamp = new Date().toISOString();

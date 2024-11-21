@@ -1,19 +1,30 @@
 import { Node } from "./Node";
 
 export class Edge {
+  public id: string;
   public source: Node;
-  public target: Node;
-  public weight: number;
-  public label: string;
+  public target!: Node;
 
-  constructor(source: Node, target: Node, weight: number, label: string) {
-    this.source = source;
-    this.target = target;
-    this.weight = weight;
-    this.label = label;
+  constructor(idOrJson: string, source?: Node, target?: Node) {
+    if (source) {
+      this.id = idOrJson;
+      this.source = source;
+      if (target) {
+        this.target = target;
+      }
+    } else {
+      const obj = JSON.parse(idOrJson);
+      this.id = obj.id;
+      this.source = obj.source;
+      this.target = obj.target;
+    }
   }
 
   public toJson(): string {
     return JSON.stringify(this);
+  }
+
+  public to3DForceGraphLink(): string {
+    return `{"source": "${this.source.id}", "target": "${this.target.id}"}`;
   }
 }

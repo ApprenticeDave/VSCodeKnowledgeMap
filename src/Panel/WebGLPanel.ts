@@ -1,107 +1,147 @@
 import * as vscode from "vscode";
 import { EventMonitor } from "../Utils/EventMonitor";
+import { LogLevel, Utils } from "../Utils/Utils";
 
 export class WebGLPanel implements Disposable {
-  private webpanel: vscode.WebviewPanel | undefined;
+  private graphicsWebviewPanel: vscode.WebviewPanel | undefined;
   private extensionUri: vscode.Uri;
-  private eventMonitor: EventMonitor = new EventMonitor();
+  private eventMonitor: EventMonitor;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, eventMonitor: EventMonitor) {
     this.extensionUri = context.extensionUri;
+    this.eventMonitor = eventMonitor;
+    this.initPanel();
+  }
 
-    this.init();
+  [Symbol.dispose](): void {
+    if (this.graphicsWebviewPanel) {
+      this.graphicsWebviewPanel.dispose();
+    }
+  }
 
-    const mapViewDisposable = vscode.commands.registerCommand(
-      "vscodeknowledgemap.OpenMapView",
-      () => {
-        this.webpanel = vscode.window.createWebviewPanel(
-          "vscodeknowledgemap.OpenMapView", // Identifies the type of the webview. Used internally
-          "Knowledge Map", // Title of the panel displayed to the user
-          vscode.ViewColumn.One, // Editor column to show the new webview panel in
-          {
-            enableScripts: true,
-            localResourceRoots: [
-              vscode.Uri.joinPath(this.extensionUri, "media"),
-            ],
-          } // Webview options. More on these later.
-        );
+  public initPanel() {
+    // Check if the panel already exists
+    if (this.graphicsWebviewPanel) {
+      this.graphicsWebviewPanel.reveal(vscode.ViewColumn.One);
+    } else {
+      // Create a new panel
+      const mapViewDisposable = vscode.commands.registerCommand(
+        "vscodeknowledgemap.OpenMapView",
+        () => {
+          this.graphicsWebviewPanel = vscode.window.createWebviewPanel(
+            "vscodeknowledgemap.OpenMapView",
+            "Knowledge Map",
+            vscode.ViewColumn.One,
+            {
+              enableScripts: true,
+              retainContextWhenHidden: true,
+              localResourceRoots: [
+                vscode.Uri.joinPath(this.extensionUri, "media"),
+              ],
+            }
+          );
 
-        // Handle messages from the webview
-        this.webpanel.webview.onDidReceiveMessage(
-          (message) => {
+          this.graphicsWebviewPanel.webview.html = this.getMapViewContent(
+            this.graphicsWebviewPanel.webview,
+            this.extensionUri
+          );
+
+          // Set up event listeners
+          this.graphicsWebviewPanel.webview.onDidReceiveMessage((message) => {
             switch (message.command) {
-              case "alert":
-                vscode.window.showInformationMessage(message.text);
+              case "log":
+                Utils.log(
+                  `WebGLPanel - WebGL Script - ${message.text}`,
+                  LogLevel.Info
+                );
                 return;
             }
-          },
-          undefined,
-          context.subscriptions
-        );
+          }, undefined);
 
-        this.init();
-      }
-    );
-  }
+          // Handle panel disposal
+          this.graphicsWebviewPanel.onDidDispose(() => {
+            this.graphicsWebviewPanel = undefined;
+          }, null);
 
-  private init() {
-    if (this.extensionUri && this.webpanel) {
-      //setup scripts and styles
-      const scriptPathOnDisk = vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "script.js"
-      );
-      const stylePathOnDisk = vscode.Uri.joinPath(
-        this.extensionUri,
-        "media",
-        "style.css"
-      );
+          if (this.extensionUri && this.graphicsWebviewPanel) {
+            //setup scripts and styles
+            const scriptPathOnDisk = vscode.Uri.joinPath(
+              this.extensionUri,
+              "media",
+              "script.js"
+            );
+            const stylePathOnDisk = vscode.Uri.joinPath(
+              this.extensionUri,
+              "media",
+              "style.css"
+            );
 
-      this.webpanel.webview.html = this.getMapViewContent(
-        this.webpanel.webview,
-        this.extensionUri
+            this.graphicsWebviewPanel.webview.html = this.getMapViewContent(
+              this.graphicsWebviewPanel.webview,
+              this.extensionUri
+            );
+          }
+        }
       );
+      this.initEvents();
     }
+  }
 
-    this.eventMonitor.on("GLNodeAdded", (node) => {
-      if (this.webpanel) {
-        this.webpanel.webview.postMessage({
-          command: "NodeAdded",
+  public initEvents() {
+    Utils.log(
+      `WebGLPanel - Init Events - Listen for Knowledgegraph Updates`,
+      LogLevel.Info
+    );
+    this.eventMonitor.on("KnowledgeGraphNodeAdded", (node) => {
+      if (this.graphicsWebviewPanel) {
+        Utils.log(
+          `WebGLPanel - Adding Node to WebGL Panel: ${node}`,
+          LogLevel.Info
+        );
+        this.graphicsWebviewPanel.webview.postMessage({
+          command: "addNode",
+          node: node,
+        });
+      } else {
+        Utils.log(`WebGLPanel - Webview not initialized`, LogLevel.Info);
+      }
+    });
+
+    this.eventMonitor.on("KnowledgeGraphNodeRemoved", (node) => {
+      if (this.graphicsWebviewPanel) {
+        this.graphicsWebviewPanel.webview.postMessage({
+          command: "removeNode",
           node: node,
         });
       }
     });
 
-    this.eventMonitor.on("GLNodeRemoved", (node) => {
-      if (this.webpanel) {
-        this.webpanel.webview.postMessage({
-          command: "NodeRemoved",
-          node: node,
+    this.eventMonitor.on("ClearView", (node) => {
+      if (this.graphicsWebviewPanel) {
+        this.graphicsWebviewPanel.webview.postMessage({
+          command: "clearView",
         });
       }
     });
 
-    this.eventMonitor.on("GLLinkAdded", (link) => {
-      if (this.webpanel) {
-        this.webpanel.webview.postMessage({
-          command: "LinkAdded",
-          node: link,
+    this.eventMonitor.on("KnowledgeGraphEdgeAdded", (edge) => {
+      if (this.graphicsWebviewPanel) {
+        this.graphicsWebviewPanel.webview.postMessage({
+          command: "addEdge",
+          node: edge,
         });
       }
     });
 
-    this.eventMonitor.on("GLLinkRemoved", (link) => {
-      if (this.webpanel) {
-        this.webpanel.webview.postMessage({
-          command: "LinkRemoved",
-          node: link,
+    this.eventMonitor.on("KnowledgeGraphEdgeRemoved", (edge) => {
+      if (this.graphicsWebviewPanel) {
+        this.graphicsWebviewPanel.webview.postMessage({
+          command: "removeEdge",
+          node: edge,
         });
       }
     });
   }
-
-  [Symbol.dispose](): void {}
 
   private getMapViewContent(
     webview: vscode.Webview,
@@ -121,20 +161,44 @@ export class WebGLPanel implements Disposable {
     // Convert the resource path to a webview URI
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
     const styleUri = webview.asWebviewUri(stylePathOnDisk);
+    const nonce = this.getNonce();
 
     // Return the HTML content
     return `<!DOCTYPE html>
-                <html lang="en">
-                <head>
-                  <meta charset="UTF-8">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <title>Knowledge Map</title>
-                  <link href="${styleUri}" rel="stylesheet">
-                </head>
-                <body>                  
-                  <canvas id="glCanvas" style="width:100%;height:100%"></canvas>
-                  <script src="${scriptUri}"></script>
-                </body>
-                </html>`;
+            <html lang="en">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} http://unpkg.com/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+                />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Knowledge Map</title>
+                <link href="${styleUri}" rel="stylesheet">
+                <script  nonce="${nonce}" crossorigin="anonymous" src="http://unpkg.com/3d-force-graph"></script>
+            </head>
+            <body>
+                <div id="glCanvas"></div>
+                <script>
+                  window.addEventListener('message', event => {
+                    const message = event.data;
+                    switch (message.command) {
+                      case 'setBackgroundColor':
+                        document.body.style.backgroundColor = message.color;
+                        break;
+                    }
+                  });
+                </script>
+                <script  nonce="${nonce}" src="${scriptUri}"></script>
+            </body>
+            </html>`;
+  }
+
+  private getNonce() {
+    let text = "";
+    const possible =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
   }
 }

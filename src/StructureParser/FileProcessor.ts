@@ -44,6 +44,7 @@ export class FileProcessor {
   }
 
   public createFileTask(filePath: string): () => Promise<void> {
+    Utils.log(`File Processor - Creating File ${filePath}`, LogLevel.Info);
     return async () => {
       const ext = path.extname(filePath).toLowerCase();
       switch (ext) {

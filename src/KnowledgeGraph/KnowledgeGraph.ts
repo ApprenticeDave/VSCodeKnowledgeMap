@@ -1,29 +1,52 @@
+import * as vscode from "vscode";
 import { EventMonitor } from "../Utils/EventMonitor";
-import { Node } from "./Node";
+import { NodeType, Node } from "./Node";
 import { Edge } from "./Edge";
+import { LogLevel, Utils } from "../Utils/Utils";
+import * as path from "path";
+import { FolderAndFileUtils } from "../Utils/FolderAndFileUtils";
 
 export class KnowledgeGraph {
   private eventMonitor: EventMonitor;
   private nodes: Map<string, Node>;
   private edges: Set<Edge>;
 
-  constructor() {
-    this.eventMonitor = new EventMonitor();
+  constructor(eventMonitor: EventMonitor) {
+    Utils.log("Knowledge Graph - Constructor - Initialize", LogLevel.Info);
+    this.eventMonitor = eventMonitor;
     this.nodes = new Map<string, Node>();
     this.edges = new Set<Edge>();
-
-    this.eventMonitor.on("NodeAdded", (node: Node) => {});
-    this.eventMonitor.on("NodeRemoved", (node: Node) => {});
-    this.eventMonitor.on("EdgeAdded", (edge: Edge) => {});
-    this.eventMonitor.on("EdgeRemoved", (edge: Edge) => {});
+    this.initEvents();
   }
 
-  addNode(node: Node): void {
+  public initEvents() {
+    Utils.log("KnowledgeGraph - initEvents - Add Eventhandling", LogLevel.Info);
+    this.eventMonitor.on("FileMonitorNodeAdded", (node: Node) => {
+      this.addNode(node);
+    });
+    this.eventMonitor.on("FileMonitorNodeRemoved", (node: Node) => {
+      this.removeNode(node.id);
+    });
+    this.eventMonitor.on("FileMonitorEdgeAdded", (edge: Edge) => {
+      this.addEdge(edge);
+    });
+    this.eventMonitor.on("FileMonitorEdgeRemoved", (edge: Edge) => {
+      this.removeEdge(edge);
+    });
+  }
+
+  public addNode(node: Node): void {
+    Utils.log(`Knowledge Graph - Adding node: ${node.id}`, LogLevel.Info);
     this.nodes.set(node.id, node);
-    this.eventMonitor.notifyChange("GLNodeAdded", node.toJson());
+    Utils.log(
+      `Knowledge Graph - Notify Node Added - node: ${node.id}`,
+      LogLevel.Info
+    );
+    this.eventMonitor.notifyChange("KnowledgeGraphNodeAdded", node);
   }
 
-  removeNode(nodeId: string): void {
+  public removeNode(nodeId: string): void {
+    Utils.log(`Knowledge Graph - Removing node: ${nodeId}`, LogLevel.Info);
     const node = this.nodes.get(nodeId);
     if (node) {
       this.nodes.delete(nodeId);
@@ -35,53 +58,87 @@ export class KnowledgeGraph {
     }
   }
 
-  addEdge(edge: Edge): void {
+  public addEdge(edge: Edge): void {
+    Utils.log(`Knowledge Graph - Add edge: ${edge.id}`, LogLevel.Info);
     if (this.nodes.has(edge.source.id) && this.nodes.has(edge.target.id)) {
       this.edges.add(edge);
+      this.eventMonitor.notifyChange("KnowledgeGraphEdgeAdded", edge);
     } else {
-      throw new Error(
-        "Both nodes must be added to the graph before adding an edge."
+      Utils.log(
+        `Knowledge Graph - Both nodes must be added to the graph before adding an edge.`,
+        LogLevel.Error
       );
     }
   }
 
-  removeEdge(edge: Edge): void {
-    this.edges.delete(edge);
+  public removeEdge(edge: Edge): void {
+    Utils.log(`Knowledge Graph - Remove edge: ${edge.id}`, LogLevel.Info);
+    if (this.edges.has(edge)) {
+      this.edges.delete(edge);
+    }
   }
 
-  getNodes(): Node[] {
+  public getNodes(): Node[] {
     return Array.from(this.nodes.values());
   }
 
-  getEdges(): Edge[] {
+  public getEdges(): Edge[] {
     return Array.from(this.edges);
   }
-}
 
-/*
-// TODO - This is genai stuff need to work through this and fix to make it actually work
+  public async generateNodesAndEdgesForWorkspace() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
 
-// Create a new store
-const store = $rdf.graph();
+    if (!workspaceFolders) {
+      return;
+    }
 
-// Define some namespaces
-const FOAF = $rdf.Namespace('http://xmlns.com/foaf/0.1/');
-const EX = $rdf.Namespace('http://example.org/');
+    for (const folder of workspaceFolders) {
+      const dirPath = folder.uri.fsPath;
+      const dirName = path.basename(dirPath);
 
-// Add some triples to the store
-store.add($rdf.sym(EX('alice')), FOAF('name'), $rdf.literal('Alice'));
-store.add($rdf.sym(EX('alice')), FOAF('knows'), $rdf.sym(EX('bob')));
-store.add($rdf.sym(EX('bob')), FOAF('name'), $rdf.literal('Bob'));
-const test ="";
-// Query the store
-const query = $rdf.SPARQLToQuery(`
-  PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-  SELECT ?name
-  WHERE {
-    ?person foaf:name ?name .
+      const workspaceNode = new Node(dirPath, dirName, NodeType.Workspace);
+      this.addNode(workspaceNode);
+
+      await this.processDirectory(workspaceNode);
+    }
+    return;
   }
-`, false, store);
 
-store.query(query, (result) => {
-  console.log(result['?name'].value);
-});*/
+  private async processDirectory(node: Node): Promise<void> {
+    // Read directory contents
+    const entries = await vscode.workspace.fs.readDirectory(
+      FolderAndFileUtils.stringToUri(node.id)
+    );
+
+    for (const [name, type] of entries) {
+      const entryUri = vscode.Uri.joinPath(
+        FolderAndFileUtils.stringToUri(node.id),
+        name
+      );
+      const entryPath = entryUri.fsPath;
+      const entryName = path.basename(entryPath);
+      if (type === vscode.FileType.Directory) {
+        const directoryNode = new Node(entryPath, entryName, NodeType.Folder);
+        this.addNode(directoryNode);
+
+        const edge = new Edge(
+          `${node.id}-${directoryNode.id}`,
+          node,
+          directoryNode
+        );
+        this.addEdge(edge);
+
+        // Recursively process subdirectories
+        await this.processDirectory(directoryNode);
+      } else if (type === vscode.FileType.File) {
+        // Create a node for the file
+        const fileNode = new Node(entryPath, entryName, NodeType.File);
+        this.addNode(fileNode);
+        // Create an edge between the directory and the file
+        const edge = new Edge(`${node.id}-${fileNode.id}`, node, fileNode);
+        this.addEdge(edge);
+      }
+    }
+  }
+}

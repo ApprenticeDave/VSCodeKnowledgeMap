@@ -3,13 +3,17 @@
   "displayName": "VSCodeKnowledgeMap",
   "description": "",
   "version": "0.0.1",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "engines": {
     "vscode": "^1.95.0"
   },
   "categories": [
-    "Other"
+    "Vizualization"
   ],
-  "activationEvents": [],
+  "pricing": "Free",
+  "activationEvents": [
+       "vscodeknowledgemap.OpenMapView"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -42,5 +46,22 @@
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "unist-util-visit": "^5.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/microsoft/vscode-wordcount/issues",
+    "email": "sean@contoso.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode-wordcount.git"
+  },
+  "homepage": "https://github.com/microsoft/vscode-wordcount/blob/main/README.md",
+  "author": {
+    "name": "Dave Russell"
+  },
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
   }
 }
