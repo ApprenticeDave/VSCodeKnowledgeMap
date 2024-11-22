@@ -1,11 +1,23 @@
 //https://github.com/vasturiano/3d-force-graph?tab=readme-ov-file
 import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
+import SpriteText from "//unpkg.com/three-spritetext/dist/three-spritetext.mjs";
 
 console.log("Knowledge View - Panel Script - DOM Loaded");
 let vscode;
 if (typeof acquireVsCodeApi !== 'undefined') {
   console.log("Knowledge View - Panel Script - acquireVsCodeApi is defined");
   vscode = acquireVsCodeApi();
+
+  // Notify the extension when the webview has loaded
+  window.addEventListener('DOMContentLoaded', () => {
+    vscode.postMessage({ command: 'WebViewLoaded' });
+  });
+
+  window.addEventListener('resize', function (event) {
+    var width = window.innerWidth, height = window.innerHeight;
+    Graph.width(width).height(height);
+  }, true);
+
 } else {
   console.error('acquireVsCodeApi is undefined');
 }
@@ -29,6 +41,8 @@ window.addEventListener('message', event => {
       break;
   }
 });
+
+
 
 function addNode(newNode) {
   const { nodes, links } = Graph.graphData();
@@ -82,7 +96,16 @@ function addEdge(newEdge) {
   }
 }
 
-
+function sendOpenFileMessage(node) {
+  if (typeof vscode === 'undefined') {
+    console.error('Knowledge View - Panel Script - Executing outside VSCode');
+  } else {
+    vscode.postMessage({
+      command: 'openFile',
+      filePath: node.id
+    });
+  }
+}
 function sendLogMessage(message, level) {
   if (typeof vscode === 'undefined') {
     console.error('Knowledge View - Panel Script -Executing outside VSCode');
@@ -101,6 +124,7 @@ const Graph = ForceGraph3D({
   .enableNodeDrag(false)
   .backgroundColor(backgroundcolour)
   .nodeAutoColorBy('group')
+  .nodeLabel('name')
   .nodeThreeObjectExtend(true)
   .nodeThreeObject(node => {
     const nodeEl = document.createElement('div');
@@ -108,5 +132,32 @@ const Graph = ForceGraph3D({
     nodeEl.style.color = node.color;
     nodeEl.className = 'node-label';
     return new CSS2DObject(nodeEl);
+  })
+  .linkThreeObjectExtend(true)
+  .linkThreeObject(link => {
+    // extend link with text sprite
+    const nodeEl = document.createElement('div');
+    nodeEl.textContent = node.name;
+    nodeEl.style.color = node.color;
+    nodeEl.className = 'node-label';
+    return new CSS2DObject(nodeEl);
+  })
+  .linkThreeObject(link => {
+    // extend link with text sprite
+    const sprite = new SpriteText(`${link.relationship}`);
+    sprite.color = 'lightgrey';
+    sprite.textHeight = 1.5;
+    return sprite;
+  })
+  .onNodeClick(node => {
+    sendOpenFileMessage(node);
+  })
+  .linkPositionUpdate((sprite, { start, end }) => {
+    const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
+      [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
+    })));
+
+    // Position sprite
+    Object.assign(sprite.position, middlePos);
   })
   .graphData(initData);

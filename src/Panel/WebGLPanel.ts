@@ -31,7 +31,7 @@ export class WebGLPanel implements Disposable {
           this.graphicsWebviewPanel = vscode.window.createWebviewPanel(
             "vscodeknowledgemap.OpenMapView",
             "Knowledge Map",
-            vscode.ViewColumn.One,
+            vscode.ViewColumn.Two,
             {
               enableScripts: true,
               retainContextWhenHidden: true,
@@ -55,6 +55,12 @@ export class WebGLPanel implements Disposable {
                   LogLevel.Info
                 );
                 return;
+              case "openFile":
+                this.openFileInEditor(message.filePath);
+                break;
+              case "WebViewLoaded":
+                this.eventMonitor.emit("GLPanelReady");
+                break;
             }
           }, undefined);
 
@@ -81,9 +87,31 @@ export class WebGLPanel implements Disposable {
               this.extensionUri
             );
           }
+
+          this.initEvents();
         }
       );
-      this.initEvents();
+    }
+  }
+
+  public async openFileInEditor(filePath: string) {
+    try {
+      const fileUri = vscode.Uri.file(filePath);
+
+      // Optional: Check if the file is within the workspace
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
+      if (!workspaceFolder) {
+        Utils.log(
+          `File is not within the workspace: ${filePath}`,
+          LogLevel.Warn
+        );
+        return;
+      }
+
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+    } catch (error) {
+      Utils.log(`WebglPanel - Error opening file: ${error}`, LogLevel.Error);
     }
   }
 

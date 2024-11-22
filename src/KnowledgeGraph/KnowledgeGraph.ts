@@ -25,7 +25,7 @@ export class KnowledgeGraph {
       this.addNode(node);
     });
     this.eventMonitor.on("FileMonitorNodeRemoved", (node: Node) => {
-      this.removeNode(node.id);
+      this.removeNode(node);
     });
     this.eventMonitor.on("FileMonitorEdgeAdded", (edge: Edge) => {
       this.addEdge(edge);
@@ -37,19 +37,29 @@ export class KnowledgeGraph {
 
   public addNode(node: Node): void {
     Utils.log(`Knowledge Graph - Adding node: ${node.id}`, LogLevel.Info);
-    this.nodes.set(node.id, node);
-    Utils.log(
-      `Knowledge Graph - Notify Node Added - node: ${node.id}`,
-      LogLevel.Info
-    );
-    this.eventMonitor.notifyChange("KnowledgeGraphNodeAdded", node);
+    if (!this.nodes.has(node.id)) {
+      this.nodes.set(node.id, node);
+      Utils.log(
+        `Knowledge Graph - Notify Node Added - node: ${node.id}`,
+        LogLevel.Info
+      );
+      this.eventMonitor.notifyChange("KnowledgeGraphNodeAdded", node);
+    } else {
+      Utils.log(
+        `Knowledge Graph - Node already exists: ${node.id}`,
+        LogLevel.Info
+      );
+    }
   }
 
-  public removeNode(nodeId: string): void {
-    Utils.log(`Knowledge Graph - Removing node: ${nodeId}`, LogLevel.Info);
-    const node = this.nodes.get(nodeId);
+  public removeNode(nodeToRemove: Node): void {
+    Utils.log(
+      `Knowledge Graph - Removing node: ${nodeToRemove.name}`,
+      LogLevel.Info
+    );
+    const node = this.nodes.get(nodeToRemove.id);
     if (node) {
-      this.nodes.delete(nodeId);
+      this.nodes.delete(node.id);
       this.edges.forEach((edge) => {
         if (edge.source === node || edge.target === node) {
           this.edges.delete(edge);

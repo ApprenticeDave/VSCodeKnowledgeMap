@@ -30,9 +30,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   knowledgeGraph = new KnowledgeGraph(eventMonitor);
 
-  setTimeout(() => {
+  eventMonitor.on("GLPanelReady", () => {
     knowledgeGraph.generateNodesAndEdgesForWorkspace();
-  }, 5000);
+  });
 
   // Listen for workspace folder changes
   workspaceFolderChangeDisposable =
