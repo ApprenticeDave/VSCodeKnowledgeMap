@@ -1,15 +1,13 @@
-# Visual Studio Code Knowledge Map  README
+# Visual Studio Code Knowledge Map README
 
-Knowledge and relationship tooling for Visual Studio which tracks relationships between concepts, files, and information within the folder that is open including sub folders. 
+Knowledge and relationship tooling for Visual Studio which tracks relationships between concepts, files, and information within the folder that is open including sub folders.
 
 ## Features
 
- This feature enables the following features:
+This feature enables the following features:
 
-* Visual Relationship map between files and concepts in files.
-* Simple note taking and note linking functionality with markdown support. 
-* Code relationship visualisation
-* Summary Generation 
+- Shows a graph of all the files in a workspace and their relationships relative to the folder structure
+- Allows for users to click nodes and open files
 
 For example if there is an image subfolder under your extension project workspace:
 
@@ -29,8 +27,8 @@ For example:
 
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `myExtension.enable`: Enable/disable this extension.
+- `myExtension.thing`: Set to `blah` to do something.
 
 ## Known Issues
 
@@ -50,17 +48,17 @@ Created Repro and added base extention template
 
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
 
 ## Working with Markdown
 
 You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
+- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
+- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
 
 ## References
 
-* [Visual Studio Code Extensions Samples](https://github.com/microsoft/vscode-extension-samples)
-**Enjoy!**
+- [Visual Studio Code Extensions Samples](https://github.com/microsoft/vscode-extension-samples)
+  **Enjoy!**

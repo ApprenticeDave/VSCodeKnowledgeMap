@@ -61,4 +61,23 @@ export class FileProcessor {
       }
     };
   }
+
+  public updateFileTask(filePath: string): () => Promise<void> {
+    Utils.log(`File Processor - File Updated ${filePath}`, LogLevel.Info);
+    return async () => {
+      const ext = path.extname(filePath).toLowerCase();
+      switch (ext) {
+        case ".md":
+          Utils.log(
+            `Adding Markdown file: ${filePath} to queue.`,
+            LogLevel.Info
+          );
+          this.processors
+            .get(".md")
+            ?.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
+        default:
+          Utils.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
+      }
+    };
+  }
 }

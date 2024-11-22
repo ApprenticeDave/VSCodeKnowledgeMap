@@ -27,7 +27,6 @@ export class FileMonitor {
   }
 
   private async initWorkspace() {
-    //TODO: Add Existing Items and process
     Utils.log(
       `File Monitor - Work through ${this.currentWorkspace} and process structure into nodes and edges`,
       LogLevel.Info
@@ -36,10 +35,8 @@ export class FileMonitor {
     const filesAndDirectories = await this.getFilesAndDirectoriesInWorkspace();
     filesAndDirectories.forEach((item) => {
       Utils.log(`File Monitor - Found file: ${item.fsPath}`, LogLevel.Info);
-      this.processFile(item);
+      this.discoverUri(item);
     });
-    //TODO: Load from store
-    //TODO: Update from Last changes
   }
 
   private async getFilesAndDirectoriesInWorkspace(): Promise<vscode.Uri[]> {
@@ -51,7 +48,7 @@ export class FileMonitor {
     return [];
   }
 
-  private async processFile(file: vscode.Uri) {
+  private async discoverUri(file: vscode.Uri) {
     const stats = await this.getFileStats(file.fsPath);
 
     Utils.log(

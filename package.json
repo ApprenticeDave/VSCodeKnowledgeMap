@@ -1,18 +1,20 @@
 {
   "name": "vscodeknowledgemap",
-  "displayName": "VSCodeKnowledgeMap",
-  "description": "",
-  "version": "0.0.1",
-  "license": "SEE LICENSE IN LICENSE.txt",
+  "displayName": "Visual Studio Code Knowledge ßMap",
+  "publisher": "DavidRussell",
+  "description": "This extension will automatically parse files and folders in your open workspaces and build a graph of all the relationships between the items.",
+  "version": "0.0.2",
+  "preview": true,
+  "license": "SEE LICENSE IN LICENSE.TXT",
   "engines": {
     "vscode": "^1.95.0"
   },
   "categories": [
-    "Vizualization"
+    "Other"
   ],
   "pricing": "Free",
   "activationEvents": [
-       "vscodeknowledgemap.OpenMapView"
+    "vscodeknowledgemap.OpenMapView"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -43,19 +45,19 @@
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@vscode/vsce": "^3.2.1",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "unist-util-visit": "^5.0.0"
   },
   "bugs": {
-    "url": "https://github.com/microsoft/vscode-wordcount/issues",
-    "email": "sean@contoso.com"
+    "url": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/microsoft/vscode-wordcount.git"
+    "url": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap.git"
   },
-  "homepage": "https://github.com/microsoft/vscode-wordcount/blob/main/README.md",
+  "homepage": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap",
   "author": {
     "name": "Dave Russell"
   },
