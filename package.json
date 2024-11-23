@@ -5,10 +5,14 @@
   "description": "This extension will automatically parse files and folders in your open workspaces and build a graph of all the relationships between the items.",
   "version": "0.0.2",
   "preview": true,
-  "license": "SEE LICENSE IN LICENSE.TXT",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
   },
+  "extensionKind": [
+    "ui",
+    "workspace"
+  ],
   "categories": [
     "Other"
   ],
@@ -18,6 +22,24 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "knowledge-map",
+          "title": "Knowledge Map",
+          "icon": ""
+        }
+      ]
+    },
+    "views": {
+      "knowledge-map": [
+        {
+          "type": "webview",
+          "id": "vscodeknowledgemap.knowledgeMapView",
+          "name": "Knowledge Map"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "vscodeknowledgemap.OpenMapView",
@@ -25,6 +47,7 @@
       }
     ]
   },
+  "l10n": "./l10n",
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
@@ -48,7 +71,8 @@
     "@vscode/vsce": "^3.2.1",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
-    "unist-util-visit": "^5.0.0"
+    "unist-util-visit": "^5.0.0",
+    "@vscode/l10n": "^0.0.10"
   },
   "bugs": {
     "url": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap/issues"

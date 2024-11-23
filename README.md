@@ -1,64 +1,14 @@
-# Visual Studio Code Knowledge Map README
+# Visual Studio Code Knowledge Map
 
 Knowledge and relationship tooling for Visual Studio which tracks relationships between concepts, files, and information within the folder that is open including sub folders.
 
 ## Features
 
-This feature enables the following features:
+**Map View:**
+Shows a graph of all the files in a workspace and their relationships relative to the folder structure.
 
-- Shows a graph of all the files in a workspace and their relationships relative to the folder structure
-- Allows for users to click nodes and open files
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+![feature Graph View](images/feature-map.png)
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 0.0.1
-
-Created Repro and added base extention template
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-- Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-- Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-- Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## References
-
-- [Visual Studio Code Extensions Samples](https://github.com/microsoft/vscode-extension-samples)
-  **Enjoy!**
+This extension leverages the [3D Force Directed Graph](https://vasturiano.github.io/3d-force-graph/) javascript library. Thanks to [Vasco Asturiano](https://observablehq.com/@vasturiano) who created this library.

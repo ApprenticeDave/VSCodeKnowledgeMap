@@ -1,10 +1,7 @@
-import * as vscode from "vscode";
 import { EventMonitor } from "../Utils/EventMonitor";
-import { NodeType, Node } from "./Node";
+import { Node } from "./Node";
 import { Edge } from "./Edge";
 import { LogLevel, Utils } from "../Utils/Utils";
-import * as path from "path";
-import { FolderAndFileUtils } from "../Utils/FolderAndFileUtils";
 
 export class KnowledgeGraph {
   private eventMonitor: EventMonitor;
@@ -21,16 +18,36 @@ export class KnowledgeGraph {
 
   public initEvents() {
     Utils.log("KnowledgeGraph - initEvents - Add Eventhandling", LogLevel.Info);
-    this.eventMonitor.on("FileMonitorNodeAdded", (node: Node) => {
-      this.addNode(node);
+    this.eventMonitor.on(
+      "FileAdded",
+      (uri: string, name: string, type: string) => {
+        this.addNode(new Node(uri, name, type));
+      }
+    );
+
+    this.eventMonitor.on("ItemDeleted", (uri: string) => {
+      const node = this.nodes.get(uri);
+      if (node) {
+        this.removeNode(node);
+      }
     });
-    this.eventMonitor.on("FileMonitorNodeRemoved", (node: Node) => {
-      this.removeNode(node);
-    });
-    this.eventMonitor.on("FileMonitorEdgeAdded", (edge: Edge) => {
-      this.addEdge(edge);
-    });
-    this.eventMonitor.on("FileMonitorEdgeRemoved", (edge: Edge) => {
+
+    this.eventMonitor.on(
+      "EdgeAdd",
+      (sourceUri: string, targetUri: string, relationship: string) => {
+        // this.addEdge(edge);
+        this.addEdge(
+          new Edge(
+            `${sourceUri}-${targetUri}`,
+            this.nodes.get(sourceUri),
+            this.nodes.get(targetUri),
+            relationship,
+            1
+          )
+        );
+      }
+    );
+    this.eventMonitor.on("EdgeRemoved", (edge: Edge) => {
       this.removeEdge(edge);
     });
   }
@@ -60,9 +77,21 @@ export class KnowledgeGraph {
     const node = this.nodes.get(nodeToRemove.id);
     if (node) {
       this.nodes.delete(node.id);
+      this.eventMonitor.notifyChange("KnowledgeGraphNodeRemoved", node);
       this.edges.forEach((edge) => {
         if (edge.source === node || edge.target === node) {
-          this.edges.delete(edge);
+          Utils.log(
+            `Knowledge Graph - Removing node Edges: ${edge}`,
+            LogLevel.Info
+          );
+          this.removeEdge(edge);
+          Utils.log(
+            `Knowledge Graph - Removing sub dir nodes: ${edge.source}`,
+            LogLevel.Info
+          );
+          if (edge.relationship === "contains" && edge.source !== node) {
+            this.removeNode(edge.source);
+          }
         }
       });
     }
@@ -85,6 +114,7 @@ export class KnowledgeGraph {
     Utils.log(`Knowledge Graph - Remove edge: ${edge.id}`, LogLevel.Info);
     if (this.edges.has(edge)) {
       this.edges.delete(edge);
+      this.eventMonitor.notifyChange("KnowledgeGraphEdgeRemoved", edge);
     }
   }
 
@@ -94,69 +124,5 @@ export class KnowledgeGraph {
 
   public getEdges(): Edge[] {
     return Array.from(this.edges);
-  }
-
-  public async generateNodesAndEdgesForWorkspace() {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-
-    if (!workspaceFolders) {
-      return;
-    }
-
-    for (const folder of workspaceFolders) {
-      const dirPath = folder.uri.fsPath;
-      const dirName = path.basename(dirPath);
-
-      const workspaceNode = new Node(dirPath, dirName, NodeType.Workspace);
-      this.addNode(workspaceNode);
-
-      await this.processDirectory(workspaceNode);
-    }
-    return;
-  }
-
-  private async processDirectory(node: Node): Promise<void> {
-    // Read directory contents
-    const entries = await vscode.workspace.fs.readDirectory(
-      FolderAndFileUtils.stringToUri(node.id)
-    );
-
-    for (const [name, type] of entries) {
-      const entryUri = vscode.Uri.joinPath(
-        FolderAndFileUtils.stringToUri(node.id),
-        name
-      );
-      const entryPath = entryUri.fsPath;
-      const entryName = path.basename(entryPath);
-      if (type === vscode.FileType.Directory) {
-        const directoryNode = new Node(entryPath, entryName, NodeType.Folder);
-        this.addNode(directoryNode);
-
-        const edge = new Edge(
-          `${node.id}-${directoryNode.id}`,
-          node,
-          directoryNode,
-          "is a subdirectory of",
-          1
-        );
-        this.addEdge(edge);
-
-        // Recursively process subdirectories
-        await this.processDirectory(directoryNode);
-      } else if (type === vscode.FileType.File) {
-        // Create a node for the file
-        const fileNode = new Node(entryPath, entryName, NodeType.File);
-        this.addNode(fileNode);
-        // Create an edge between the directory and the file
-        const edge = new Edge(
-          `${node.id}-${fileNode.id}`,
-          node,
-          fileNode,
-          "is a sub file of",
-          1
-        );
-        this.addEdge(edge);
-      }
-    }
   }
 }

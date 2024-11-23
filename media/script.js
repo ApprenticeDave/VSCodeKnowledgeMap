@@ -36,8 +36,14 @@ window.addEventListener('message', event => {
     case 'addNode':
       addNode(message.node);
       break;
+    case 'removeNode':
+      removeNode(message.node);
+      break;
     case 'addEdge':
       addEdge(message.node);
+      break;
+    case 'removeEdge':
+      removeEdge(message.node);
       break;
   }
 });
@@ -93,6 +99,73 @@ function addEdge(newEdge) {
   } else {
     console.info('Knowledge View - Panel Script - Duplicate edge', newEdge);
     sendLogMessage(`Script - Edge already exists`, 'Info');
+  }
+}
+
+function removeNode(node) {
+  const { nodes, links } = Graph.graphData();
+  console.info('Knowledge View - Panel Script - Removing node', node);
+
+  const graphnode = {
+    id: node.id,
+    name: node.name,
+    group: node.nodetype,
+  };
+
+  const index = nodes.findIndex(n => n.id === node.id);
+  if (index > -1) {
+    removeNodeEdges(node);
+    nodes.splice(index, 1);
+    try {
+      Graph.graphData({ nodes, links });
+      sendLogMessage(`Script - Node removed ${node.name}`, 'Info');
+    } catch (e) {
+      console.error('Knowledge View - Panel Script - Error removing node', e);
+      sendLogMessage(`Script - Error removing node ${node.name}`, 'Error');
+    }
+
+  } else {
+    console.info('Knowledge View - Panel Script - Node not found', node);
+    sendLogMessage(`Script - Node not found`, 'Info');
+  }
+}
+
+function removeNodeEdges(node) {
+  const { nodes, links } = Graph.graphData();
+
+  const nodeEdges = links.filter(l => l.source.id === node.id || l.target.id === node.id);
+  console.info('Knowledge View - Panel Script - Removing node edges', nodeEdges);
+
+  if (nodeEdges.length > 0) {
+    nodeEdges.forEach(edge => {
+      removeEdge(edge);
+    });
+
+  } else {
+    console.info('Knowledge View - Panel Script - Node edges not found', node.id);
+    sendLogMessage(`Script - Node edges not found`, 'Info');
+  }
+
+}
+
+function removeEdge(edge) {
+  const { nodes, links } = Graph.graphData();
+  console.info('Knowledge View - Panel Script - Removing edge', edge);
+
+  const index = links.findIndex(l => l.source.id === edge.source.id && l.target.id === edge.target.id);
+  if (index > -1) {
+    links.splice(index, 1);
+    try {
+      Graph.graphData({ nodes, links });
+      sendLogMessage(`Script - Edge removed ${edge.source.id} -> ${edge.target.id}`, 'Info');
+    } catch (e) {
+      console.error('Knowledge View - Panel Script - Error removing edge', e);
+      sendLogMessage(`Script - Error removing edge ${edge.source.id} -> ${edge.target.id}`, 'Error');
+    }
+
+  } else {
+    console.info('Knowledge View - Panel Script - Edge not found', edge);
+    sendLogMessage(`Script - Edge not found`, 'Info');
   }
 }
 

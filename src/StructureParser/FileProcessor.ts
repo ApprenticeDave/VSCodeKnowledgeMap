@@ -12,6 +12,7 @@ export class FileProcessor {
 
   constructor(maxWorkers: number) {
     this.maxWorkers = maxWorkers;
+    // Convert this to a factory
     this.processors.set(".md", new MarkdownProcessor());
   }
 

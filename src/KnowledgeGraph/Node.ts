@@ -1,15 +1,9 @@
-export enum NodeType {
-  File = "file",
-  Folder = "folder",
-  Workspace = "workspace",
-}
-
 export class Node {
   public name: string;
   public id: string;
-  public nodetype: string | undefined;
+  public nodetype?: string;
 
-  constructor(idOrJson: string, name?: string, nodetype?: NodeType) {
+  constructor(idOrJson: string, name?: string, nodetype?: string) {
     if (name) {
       this.name = name;
       this.id = idOrJson;

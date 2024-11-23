@@ -1,98 +1,48 @@
-import * as path from "path";
 import * as vscode from "vscode";
-import * as fs from "fs";
 import { FileProcessor } from "./FileProcessor";
 import { LogLevel, Utils } from "../Utils/Utils";
 import { EventMonitor } from "../Utils/EventMonitor";
+import { FolderAndFileUtils } from "../Utils/FolderAndFileUtils";
+import path from "path";
 
 export class FileMonitor {
   private watcher: vscode.FileSystemWatcher | undefined;
   private fileProcessor: FileProcessor = new FileProcessor(1);
   private eventMonitor: EventMonitor;
-  private currentWorkspace: string;
 
-  constructor(currentWorkspace: string, eventMonitor: EventMonitor) {
+  constructor(eventMonitor: EventMonitor) {
     this.eventMonitor = eventMonitor;
-    this.currentWorkspace = currentWorkspace;
+
     // Create a file system watcher for the extension folder
     this.init();
   }
 
   public init() {
     Utils.log("Initializing File Parser", LogLevel.Info);
-
-    this.initWorkspace();
-
+    this.GetFilesAndFoldersForWorkspace();
     this.setupListenToWorkspace();
   }
 
-  private async initWorkspace() {
-    Utils.log(
-      `File Monitor - Work through ${this.currentWorkspace} and process structure into nodes and edges`,
-      LogLevel.Info
-    );
-
-    const filesAndDirectories = await this.getFilesAndDirectoriesInWorkspace();
-    filesAndDirectories.forEach((item) => {
-      Utils.log(`File Monitor - Found file: ${item.fsPath}`, LogLevel.Info);
-      this.discoverUri(item);
-    });
-  }
-
-  private async getFilesAndDirectoriesInWorkspace(): Promise<vscode.Uri[]> {
-    if (this.currentWorkspace) {
-      const pattern = new vscode.RelativePattern(this.currentWorkspace, "**/*");
-      return await vscode.workspace.findFiles(pattern);
-    }
-
-    return [];
-  }
-
-  private async discoverUri(file: vscode.Uri) {
-    const stats = await this.getFileStats(file.fsPath);
-
-    Utils.log(
-      `File Monitor - ${stats.isDirectory() ? "directory" : "file"}: ${
-        file.fsPath
-      }`,
-      LogLevel.Info
-    );
-    const nodeId = file.fsPath;
-    const nodeName = file.path.split("/").pop() || "unknown";
-    const node = { id: nodeId, name: nodeName };
-
-    this.eventMonitor.notifyChange("NodeAdded", node);
-  }
-
   private setupListenToWorkspace() {
-    const folderPath = this.currentWorkspace;
-    if (folderPath) {
-      Utils.log(
-        `File Monitor - Initializing File Parser for folder: ${folderPath}`,
-        LogLevel.Info
-      );
-      this.watcher = vscode.workspace.createFileSystemWatcher(
-        new vscode.RelativePattern(folderPath, "**/*")
-      );
+    const folderPaths = vscode.workspace.workspaceFolders;
 
-      this.watcher.onDidChange(this.onFileChange.bind(this));
-      this.watcher.onDidCreate(this.onFileCreate.bind(this));
-      this.watcher.onDidDelete(this.onFileDelete.bind(this));
+    if (folderPaths) {
+      folderPaths.forEach((folder) => {
+        Utils.log(
+          `File Monitor - Initializing File Parser for folder: ${folder}`,
+          LogLevel.Info
+        );
+        this.watcher = vscode.workspace.createFileSystemWatcher(
+          new vscode.RelativePattern(folder, "**/*")
+        );
+
+        this.watcher.onDidChange(this.onFileChange.bind(this));
+        this.watcher.onDidCreate(this.onFileCreate.bind(this));
+        this.watcher.onDidDelete(this.onFileDelete.bind(this));
+      });
     } else {
       Utils.log("File Monitor - No workspace folder found", LogLevel.Error);
     }
-  }
-
-  private getFileStats(path: string): Promise<fs.Stats> {
-    return new Promise((resolve, reject) => {
-      fs.stat(path, (err, stats) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(stats);
-        }
-      });
-    });
   }
 
   private onFileChange(uri: vscode.Uri) {
@@ -101,20 +51,71 @@ export class FileMonitor {
 
   private onFileCreate(uri: vscode.Uri) {
     Utils.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
-    // this.knowledgeGraph.addNode(
-    //   new Node(uri.fsPath, path.basename(uri.fsPath))
-    // );
-    this.fileProcessor.addTask(this.fileProcessor.createFileTask(uri.fsPath));
+    this.emitEntryAdd(uri);
   }
 
   private onFileDelete(uri: vscode.Uri) {
     Utils.log(`File Monitor - File deleted: ${uri.fsPath}`, LogLevel.Info);
-    // this.knowledgeGraph.removeNode(uri.fsPath);
+    this.eventMonitor.emit("ItemDeleted", uri.fsPath);
   }
 
   dispose() {
     if (this.watcher !== undefined) {
       this.watcher.dispose();
+    }
+  }
+
+  private emitEntryAdd(uri: vscode.Uri, isWorkspace?: boolean) {
+    const entryPath = uri.fsPath;
+    const entryName = path.basename(uri.fsPath);
+    const entryType = isWorkspace ? "workspace" : uri.scheme;
+    Utils.log(
+      `File Monitor - Adding ${entryType} Item - ${entryPath}`,
+      LogLevel.Info
+    );
+    this.eventMonitor.emit("FileAdded", entryPath, entryName, entryType);
+    if (!isWorkspace) {
+      this.eventMonitor.emit(
+        "EdgeAdd",
+        uri.fsPath,
+        FolderAndFileUtils.getFileDirectory(uri),
+        "contains"
+      );
+    }
+  }
+
+  public async GetFilesAndFoldersForWorkspace() {
+    Utils.log(`File Monitor - Processing Open Workspaces`, LogLevel.Info);
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+
+    if (!workspaceFolders) {
+      Utils.log(`File Monitor - No workspace open`, LogLevel.Info);
+      return;
+    }
+
+    for (const folder of workspaceFolders) {
+      Utils.log(`File Monitor - Processing Workspace ${folder}`, LogLevel.Info);
+      // Add Workspace Nodes
+      this.emitEntryAdd(folder.uri, true);
+      await this.processDirectory(folder.uri);
+    }
+    return;
+  }
+
+  private async processDirectory(uri: vscode.Uri): Promise<void> {
+    // Read directory contents
+    const entries = await vscode.workspace.fs.readDirectory(uri);
+
+    for (const [name, type] of entries) {
+      const entryUri = vscode.Uri.joinPath(uri, name);
+      if (type === vscode.FileType.Directory) {
+        this.emitEntryAdd(entryUri);
+        // Recursively process subdirectories
+        await this.processDirectory(entryUri);
+      } else if (type === vscode.FileType.File) {
+        // Create a node for the file
+        this.emitEntryAdd(entryUri);
+      }
     }
   }
 }
