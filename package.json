@@ -3,7 +3,7 @@
   "displayName": "Visual Studio Code Knowledge ßMap",
   "publisher": "DavidRussell",
   "description": "This extension will automatically parse files and folders in your open workspaces and build a graph of all the relationships between the items.",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "preview": true,
   "license": "MIT",
   "engines": {
@@ -65,14 +65,20 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "eslint": "^9.13.0",
+    "grunt-bump": "^0.8.0",
+    "grunt": "~0.4.5",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-nodeunit": "~0.4.1",
+    "grunt-contrib-uglify": "~0.5.0",
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@vscode/l10n": "^0.0.10",
     "@vscode/vsce": "^3.2.1",
+    "grunt-cli": "^1.5.0",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
-    "unist-util-visit": "^5.0.0",
-    "@vscode/l10n": "^0.0.10"
+    "unist-util-visit": "^5.0.0"
   },
   "bugs": {
     "url": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap/issues"
