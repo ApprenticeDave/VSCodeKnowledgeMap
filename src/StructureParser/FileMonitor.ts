@@ -10,16 +10,22 @@ export class FileMonitor {
   private fileProcessor: FileProcessor;
   private eventMonitor: EventMonitor;
 
-  constructor(eventMonitor: EventMonitor) {
+  constructor(eventMonitor: EventMonitor, isGraphPopulated: boolean) {
     this.eventMonitor = eventMonitor;
     this.fileProcessor = new FileProcessor(1, this.eventMonitor);
     // Create a file system watcher for the extension folder
-    this.init();
+    this.init(isGraphPopulated);
   }
 
-  public init() {
+  public init(isGraphPopulated: boolean = false) {
     Logger.log("Initializing File Parser", LogLevel.Info);
-    this.GetFilesAndFoldersForWorkspace();
+    if (!isGraphPopulated) {
+      Logger.log(
+        "Initializing File Parser - Graph not populated geneating files",
+        LogLevel.Info
+      );
+      this.GetFilesAndFoldersForWorkspace();
+    }
     this.setupListenToWorkspace();
   }
 

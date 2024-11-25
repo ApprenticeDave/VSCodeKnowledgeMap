@@ -64,7 +64,7 @@ function addNode(newNode) {
     group: newNode.nodetype,
   };
 
-  if (!nodes.includes(graphnode)) {
+  if (nodes.find(n => n.id === newNode.id) === undefined) {
     nodes.push(graphnode);
     try {
       Graph.graphData({ nodes, links });
@@ -91,7 +91,8 @@ function addEdge(newEdge) {
     weight: newEdge.weight
   };
 
-  if (!links.includes(graphedge)) {
+
+  if (links.find(l => l.source.id === newEdge.source.id && l.target.id === newEdge.target.id) === undefined) {
     links.push(graphedge);
     try {
       Graph.graphData({ nodes, links });

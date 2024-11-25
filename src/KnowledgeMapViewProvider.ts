@@ -51,7 +51,11 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
         case "WebViewLoaded":
           this.initEvents();
           this.knowledgeGraph = new KnowledgeGraph(this.eventMonitor);
-          this.fileMonitor = new FileMonitor(this.eventMonitor);
+
+          this.fileMonitor = new FileMonitor(
+            this.eventMonitor,
+            this.knowledgeGraph.getNodes().length > 0
+          );
           break;
       }
     }, undefined);
