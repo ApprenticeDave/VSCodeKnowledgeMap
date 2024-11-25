@@ -17,6 +17,9 @@
     "Other"
   ],
   "pricing": "Free",
+  "sponsor": {
+    "url": "https://github.com/sponsors/ApprenticeDave"
+  },
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
