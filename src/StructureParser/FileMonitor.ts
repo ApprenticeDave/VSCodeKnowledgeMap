@@ -1,24 +1,24 @@
 import * as vscode from "vscode";
 import { FileProcessor } from "./FileProcessor";
-import { LogLevel, Utils } from "../Utils/Utils";
+import { Logger, LogLevel } from "../Utils/Logger";
 import { EventMonitor } from "../Utils/EventMonitor";
 import { FolderAndFileUtils } from "../Utils/FolderAndFileUtils";
 import path from "path";
 
 export class FileMonitor {
   private watcher: vscode.FileSystemWatcher | undefined;
-  private fileProcessor: FileProcessor = new FileProcessor(1);
+  private fileProcessor: FileProcessor;
   private eventMonitor: EventMonitor;
 
   constructor(eventMonitor: EventMonitor) {
     this.eventMonitor = eventMonitor;
-
+    this.fileProcessor = new FileProcessor(1, this.eventMonitor);
     // Create a file system watcher for the extension folder
     this.init();
   }
 
   public init() {
-    Utils.log("Initializing File Parser", LogLevel.Info);
+    Logger.log("Initializing File Parser", LogLevel.Info);
     this.GetFilesAndFoldersForWorkspace();
     this.setupListenToWorkspace();
   }
@@ -28,7 +28,7 @@ export class FileMonitor {
 
     if (folderPaths) {
       folderPaths.forEach((folder) => {
-        Utils.log(
+        Logger.log(
           `File Monitor - Initializing File Parser for folder: ${folder}`,
           LogLevel.Info
         );
@@ -41,22 +41,22 @@ export class FileMonitor {
         this.watcher.onDidDelete(this.onFileDelete.bind(this));
       });
     } else {
-      Utils.log("File Monitor - No workspace folder found", LogLevel.Error);
+      Logger.log("File Monitor - No workspace folder found", LogLevel.Error);
     }
   }
 
   private onFileChange(uri: vscode.Uri) {
-    Utils.log(`File Monitor - File changed: ${uri.fsPath}`, LogLevel.Info);
+    Logger.log(`File Monitor - File changed: ${uri.fsPath}`, LogLevel.Info);
   }
 
   private onFileCreate(uri: vscode.Uri) {
-    Utils.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
+    Logger.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
     this.emitEntryAdd(uri);
   }
 
   private onFileDelete(uri: vscode.Uri) {
-    Utils.log(`File Monitor - File deleted: ${uri.fsPath}`, LogLevel.Info);
-    this.eventMonitor.emit("ItemDeleted", uri.fsPath);
+    Logger.log(`File Monitor - File deleted: ${uri.fsPath}`, LogLevel.Info);
+    this.eventMonitor.emit("NodeDeleted", uri.fsPath);
   }
 
   dispose() {
@@ -69,32 +69,36 @@ export class FileMonitor {
     const entryPath = uri.fsPath;
     const entryName = path.basename(uri.fsPath);
     const entryType = isWorkspace ? "workspace" : uri.scheme;
-    Utils.log(
+    Logger.log(
       `File Monitor - Adding ${entryType} Item - ${entryPath}`,
       LogLevel.Info
     );
-    this.eventMonitor.emit("FileAdded", entryPath, entryName, entryType);
+    this.eventMonitor.emit("NodeAdded", entryPath, entryName, entryType);
+    this.fileProcessor.createFileTask(uri.fsPath)();
     if (!isWorkspace) {
       this.eventMonitor.emit(
         "EdgeAdd",
-        uri.fsPath,
         FolderAndFileUtils.getFileDirectory(uri),
+        uri.fsPath,
         "contains"
       );
     }
   }
 
   public async GetFilesAndFoldersForWorkspace() {
-    Utils.log(`File Monitor - Processing Open Workspaces`, LogLevel.Info);
+    Logger.log(`File Monitor - Processing Open Workspaces`, LogLevel.Info);
     const workspaceFolders = vscode.workspace.workspaceFolders;
 
     if (!workspaceFolders) {
-      Utils.log(`File Monitor - No workspace open`, LogLevel.Info);
+      Logger.log(`File Monitor - No workspace open`, LogLevel.Info);
       return;
     }
 
     for (const folder of workspaceFolders) {
-      Utils.log(`File Monitor - Processing Workspace ${folder}`, LogLevel.Info);
+      Logger.log(
+        `File Monitor - Processing Workspace ${folder}`,
+        LogLevel.Info
+      );
       // Add Workspace Nodes
       this.emitEntryAdd(folder.uri, true);
       await this.processDirectory(folder.uri);

@@ -1,21 +1,20 @@
 // The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { KnowledgeMapViewProvider } from "./KnowledgeMapViewProvider";
-import { LogLevel, Utils } from "./Utils/Utils";
+import { Logger, LogLevel } from "./Utils/Logger";
 import { EventMonitor } from "./Utils/EventMonitor";
 
+// Global variables
 let eventMonitor: EventMonitor;
 let extensionContext: vscode.ExtensionContext;
+
 // This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
-  Utils.log("Extenson - Activating", LogLevel.Info);
+  Logger.log("Extension - Activating", LogLevel.Info);
 
   eventMonitor = new EventMonitor();
   extensionContext = context;
+
   const provider = new KnowledgeMapViewProvider(
     context.extensionUri,
     eventMonitor
@@ -29,8 +28,9 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 }
 
-function WorkspaceChanged() {
-  Utils.log("Extension - Workspace Changed", LogLevel.Info);
+// Function to handle workspace changes
+function workspaceChanged() {
+  Logger.log("Extension - Workspace Changed", LogLevel.Info);
 }
 
 // This method is called when your extension is deactivated

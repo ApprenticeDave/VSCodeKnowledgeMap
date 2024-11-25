@@ -5,7 +5,10 @@ export class Edge {
   public source: Node;
   public target!: Node;
   public relationship!: string;
-  public weight!: number;
+  public weight: number = 1;
+  public curvature: number = 0.8;
+  public rotation: number = 0;
+  public particles: number = 1;
 
   constructor(
     idOrJson: string,

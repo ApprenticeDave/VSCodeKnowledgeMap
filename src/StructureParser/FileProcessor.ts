@@ -2,18 +2,21 @@ import * as fs from "fs";
 import * as path from "path";
 import { MarkdownProcessor } from "./FileTypeProcessors/MarkdownProcessor";
 import { iLinker } from "./iLinker";
-import { LogLevel, Utils } from "../Utils/Utils";
+import { Logger, LogLevel } from "../Utils/Logger";
+import { EventMonitor } from "../Utils/EventMonitor";
 
 export class FileProcessor {
   private processors = new Map<string, iLinker>();
   private taskQueue: (() => Promise<void>)[] = [];
   private activeWorkers: number = 0;
   private maxWorkers: number;
+  private eventMonitor: EventMonitor;
 
-  constructor(maxWorkers: number) {
+  constructor(maxWorkers: number, eventMonitor: EventMonitor) {
     this.maxWorkers = maxWorkers;
+    this.eventMonitor = eventMonitor;
     // Convert this to a factory
-    this.processors.set(".md", new MarkdownProcessor());
+    this.processors.set(".md", new MarkdownProcessor(this.eventMonitor));
   }
 
   // Add a task to the queue
@@ -37,7 +40,7 @@ export class FileProcessor {
     try {
       await task();
     } catch (error) {
-      Utils.log("Task failed:", LogLevel.Error);
+      Logger.log("Task failed:", LogLevel.Error);
     } finally {
       this.activeWorkers--;
       this.processQueue();
@@ -45,12 +48,12 @@ export class FileProcessor {
   }
 
   public createFileTask(filePath: string): () => Promise<void> {
-    Utils.log(`File Processor - Creating File ${filePath}`, LogLevel.Info);
+    Logger.log(`File Processor - Creating File ${filePath}`, LogLevel.Info);
     return async () => {
       const ext = path.extname(filePath).toLowerCase();
       switch (ext) {
         case ".md":
-          Utils.log(
+          Logger.log(
             `Adding Markdown file: ${filePath} to queue.`,
             LogLevel.Info
           );
@@ -58,18 +61,18 @@ export class FileProcessor {
             .get(".md")
             ?.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
         default:
-          Utils.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
+          Logger.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
       }
     };
   }
 
   public updateFileTask(filePath: string): () => Promise<void> {
-    Utils.log(`File Processor - File Updated ${filePath}`, LogLevel.Info);
+    Logger.log(`File Processor - File Updated ${filePath}`, LogLevel.Info);
     return async () => {
       const ext = path.extname(filePath).toLowerCase();
       switch (ext) {
         case ".md":
-          Utils.log(
+          Logger.log(
             `Adding Markdown file: ${filePath} to queue.`,
             LogLevel.Info
           );
@@ -77,7 +80,7 @@ export class FileProcessor {
             .get(".md")
             ?.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
         default:
-          Utils.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
+          Logger.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
       }
     };
   }

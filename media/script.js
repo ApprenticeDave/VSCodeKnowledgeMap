@@ -42,6 +42,9 @@ window.addEventListener('message', event => {
     case 'addEdge':
       addEdge(message.node);
       break;
+    case 'updateEdge':
+      updateEdge(message.node);
+      break;
     case 'removeEdge':
       removeEdge(message.node);
       break;
@@ -84,6 +87,7 @@ function addEdge(newEdge) {
     source: newEdge.source.id,
     target: newEdge.target.id,
     relationship: newEdge.relationship,
+    weight: newEdge.weight
   };
 
   if (!links.includes(graphedge)) {
@@ -100,6 +104,14 @@ function addEdge(newEdge) {
     console.info('Knowledge View - Panel Script - Duplicate edge', newEdge);
     sendLogMessage(`Script - Edge already exists`, 'Info');
   }
+}
+
+function updateEdge(edge) {
+  const { nodes, links } = Graph.graphData();
+  const index = links.findIndex(l => l.source.id === edge.source.id && l.target.id === edge.target.id);
+  links[index] = edge;
+  Graph.graphData({ nodes, links });
+
 }
 
 function removeNode(node) {
@@ -191,6 +203,29 @@ function sendLogMessage(message, level) {
   }
 }
 
+function calculateRotation(index, totalEdges) {
+  return (Math.PI * index) / totalEdges;
+}
+
+function arcPath(leftHand, d) {
+  var start = leftHand ? d.source : d.target,
+    end = leftHand ? d.target : d.source,
+    dx = end.x - start.x,
+    dy = end.y - start.y,
+    dr = Math.sqrt(dx * dx + dy * dy),
+    sweep = leftHand ? 0 : 1;
+  return "M" + start.x + "," + start.y + "A" + dr + "," + dr +
+    " 0 0," + sweep + " " + end.x + "," + end.y;
+}
+
+function getQuadraticXYZ(t, s, cp1, e) {
+  return {
+    x: (1 - t) * (1 - t) * s.x + 2 * (1 - t) * t * cp1.x + t * t * e.x,
+    y: (1 - t) * (1 - t) * s.y + 2 * (1 - t) * t * cp1.y + t * t * e.y,
+    z: (1 - t) * (1 - t) * s.z + 2 * (1 - t) * t * cp1.z + t * t * e.z
+  };
+}
+
 const Graph = ForceGraph3D({
   extraRenderers: [new CSS2DRenderer()]
 })(elem)
@@ -206,31 +241,57 @@ const Graph = ForceGraph3D({
     nodeEl.className = 'node-label';
     return new CSS2DObject(nodeEl);
   })
+  .linkCurvature(link => {
+    if (link.curvature === undefined) {
+      const totaledges = initData.links.filter(l => (l.source.id === link.source.id && l.target.id === link.target.id) || (l.target.id === link.source.id && l.source.id === link.target.id)).length;
+      link.curvature = 0;
+      if (totaledges > 1 || link.source.id === link.target.id) {
+        link.curvature = 0.8;
+      }
+    }
+    return link.curvature;
+  })
+  .linkCurveRotation(link => {
+    const totaledges = initData.links.filter(l => l.source.id === link.source.id).length;
+    const index = initData.links.indexOf(l => l.source.id === link.source.id);
+    return calculateRotation(index, totaledges);
+  })
+  .linkDirectionalParticles(link => { return 1 })
+  .linkWidth(link => { return link.weight / 10; })
   .linkThreeObjectExtend(true)
   .linkThreeObject(link => {
-    // extend link with text sprite
-    const nodeEl = document.createElement('div');
-    nodeEl.textContent = node.name;
-    nodeEl.style.color = node.color;
-    nodeEl.className = 'node-label';
-    return new CSS2DObject(nodeEl);
-  })
-  .linkThreeObject(link => {
-    // extend link with text sprite
     const sprite = new SpriteText(`${link.relationship}`);
     sprite.color = 'lightgrey';
     sprite.textHeight = 1.5;
+    sprite.link = link;
     return sprite;
   })
   .onNodeClick(node => {
     sendOpenFileMessage(node);
   })
   .linkPositionUpdate((sprite, { start, end }) => {
-    const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
-      [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
-    })));
+    if (sprite.link.__curve) {
+      let textPos = getQuadraticXYZ(
+        0.5,
+        start,
+        sprite.link.__curve.v1,
+        end
+      );
+      if (sprite.link.source === sprite.link.target) {
+        textPos = getQuadraticXYZ(
+          0.5,
+          sprite.link.__curve.v1,
+          sprite.link.__curve.v2,
+          sprite.link.__curve.v3
+        );
+      }
+      Object.assign(sprite.position, textPos);
+    } else {
+      const middlePos = Object.assign(...['x', 'y', 'z'].map(c => ({
+        [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
+      })));
 
-    // Position sprite
-    Object.assign(sprite.position, middlePos);
+      Object.assign(sprite.position, middlePos);
+    }
   })
   .graphData(initData);

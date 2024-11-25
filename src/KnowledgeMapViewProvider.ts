@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { FolderAndFileUtils } from "./Utils/FolderAndFileUtils";
-import { LogLevel, Utils } from "./Utils/Utils";
+import { Logger, LogLevel } from "./Utils/Logger";
 import { KnowledgeGraph } from "./KnowledgeGraph/KnowledgeGraph";
 import { EventMonitor } from "./Utils/EventMonitor";
 import { FileMonitor } from "./StructureParser/FileMonitor";
@@ -40,7 +40,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     this.webviewView.webview.onDidReceiveMessage((message) => {
       switch (message.command) {
         case "log":
-          Utils.log(
+          Logger.log(
             `KnowledgeMap View Provider - WebGL Script - ${message.text}`,
             LogLevel.Info
           );
@@ -58,13 +58,13 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   }
 
   public initEvents() {
-    Utils.log(
+    Logger.log(
       `KnowledgeMap View Provider - Init Events - Listen for Knowledgegraph Updates`,
       LogLevel.Info
     );
     this.eventMonitor.on("KnowledgeGraphNodeAdded", (node) => {
       if (this.webviewView) {
-        Utils.log(
+        Logger.log(
           `KnowledgeMap View Provider - Adding Node to WebGL Panel: ${node}`,
           LogLevel.Info
         );
@@ -73,7 +73,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
           node: node,
         });
       } else {
-        Utils.log(
+        Logger.log(
           `KnowledgeMap View Provider - Webview not initialized`,
           LogLevel.Info
         );
@@ -123,7 +123,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       // Optional: Check if the file is within the workspace
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
       if (!workspaceFolder) {
-        Utils.log(
+        Logger.log(
           `KnowledgeMap View Provider - File is not within the workspace: ${filePath}`,
           LogLevel.Warn
         );
@@ -133,7 +133,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       const document = await vscode.workspace.openTextDocument(fileUri);
       await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
     } catch (error) {
-      Utils.log(
+      Logger.log(
         `KnowledgeMap View Provider - Error opening file: ${error}`,
         LogLevel.Error
       );

@@ -17,9 +17,6 @@
     "Other"
   ],
   "pricing": "Free",
-  "activationEvents": [
-    "vscodeknowledgemap.OpenMapView"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -27,7 +24,7 @@
         {
           "id": "knowledge-map",
           "title": "Knowledge Map",
-          "icon": ""
+          "icon": "images/icon.png"
         }
       ]
     },
