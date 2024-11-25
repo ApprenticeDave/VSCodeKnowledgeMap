@@ -4,10 +4,10 @@ Knowledge and relationship tooling for Visual Studio which tracks relationships 
 
 ## Features
 
-**Map View:**
-Shows a graph of all the files in a workspace and their relationships relative to the folder structure.
+**Map View Sidebar:**
+Shows a graph of all the files in a workspace and their relationships relative to the folder structure in a sidebar.
 
-![feature Graph View](images/feature-map.png)
+![feature Graph View](images/feature-map-as-sidebar.gif)
 
 ## Requirements
 

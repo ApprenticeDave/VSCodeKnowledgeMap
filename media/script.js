@@ -26,6 +26,7 @@ const initData = {
   nodes: [],
   links: []
 };
+
 const elem = document.getElementById("glCanvas");
 const backgroundcolour = window.getComputedStyle(document.body).getPropertyValue('--vscode-merge-commonContentBackground');
 
