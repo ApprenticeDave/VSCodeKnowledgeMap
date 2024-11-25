@@ -1,22 +1,30 @@
+import { Utils } from "../Utils/Utils";
+
 export class Node {
-  public name: string;
   public id: string;
+  public name?: string;
   public nodetype?: string;
 
   constructor(idOrJson: string, name?: string, nodetype?: string) {
-    if (name) {
-      this.name = name;
-      this.id = idOrJson;
-      if (nodetype) {
-        this.nodetype = nodetype;
-      }
-    } else {
+    if (Utils.IsJson(idOrJson)) {
       const obj = JSON.parse(idOrJson);
-      this.name = obj.name;
       this.id = obj.id;
+      this.name = obj.name;
       if (obj.nodetype) {
         this.nodetype = obj.nodetype;
       }
+    } else {
+      this.id = idOrJson;
+      if (name) {
+        this.name = name;
+      }
+      if (nodetype) {
+        this.nodetype = nodetype;
+      }
     }
+  }
+
+  public equals(other: Node): boolean {
+    return this.id === other.id;
   }
 }

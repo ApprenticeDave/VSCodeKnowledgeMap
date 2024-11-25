@@ -22,4 +22,13 @@ export class Utils {
       `[${timestamp}] [${level}] Visual Studio Code - Knowledge Map Extension -  ${message}`
     );
   }
+
+  public static IsJson(input: any): boolean {
+    try {
+      const json = JSON.parse(input);
+      return typeof json === "object";
+    } catch (e) {
+      return false;
+    }
+  }
 }
