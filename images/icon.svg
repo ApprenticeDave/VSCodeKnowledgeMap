@@ -1,0 +1,16 @@
+<svg width="800" height="800" xmlns="http://www.w3.org/2000/svg">
+
+ <g>
+  <title>Layer 1</title>
+  <ellipse ry="77" rx="77" id="svg_9" cy="107" cx="688.5" stroke="#000" fill="#000000"/>
+  <ellipse ry="37.5" rx="37.5" id="svg_11" cy="110.5" cx="132" stroke="#000" fill="#000000"/>
+  <ellipse ry="117.5" rx="117.5" id="svg_12" cy="553.5" cx="576" stroke="#000" fill="#000000"/>
+  <ellipse ry="32.5" rx="32.5" id="svg_13" cy="340.5" cx="293" stroke="#000" fill="#000000"/>
+  <ellipse ry="67" rx="67" id="svg_14" cy="581" cx="133.5" stroke="#000" fill="#000000"/>
+  <line stroke-width="5" id="svg_15" y2="110" x2="681.5" y1="109" x1="133.5" stroke="#000" fill="none"/>
+  <line stroke-width="6" id="svg_16" y2="576" x2="569.5" y1="112" x1="698.5" stroke="#000" fill="none"/>
+  <line stroke-width="5" id="svg_17" y2="348" x2="301.5" y1="546" x1="554.5" stroke="#000" fill="none"/>
+  <line stroke-width="6" id="svg_18" y2="590" x2="132.5" y1="335" x1="287.5" stroke="#000" fill="none"/>
+  <line stroke-width="5" id="svg_19" y2="344" x2="299.5" y1="120" x1="136.5" stroke="#000" fill="none"/>
+ </g>
+</svg>
