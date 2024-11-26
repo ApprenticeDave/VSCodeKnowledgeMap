@@ -16,6 +16,9 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "knowledge graph 3d relationships"
+  ],
   "pricing": "Free",
   "sponsor": {
     "url": "https://github.com/sponsors/ApprenticeDave"
@@ -42,8 +45,32 @@
     },
     "commands": [
       {
-        "command": "vscodeknowledgemap.OpenMapView",
-        "title": "Open Knowledge Map View"
+        "command": "vscodeknowledgemap.RefreshKnowledgeMap",
+        "title": "Refresh View"
+      }
+    ],
+    "configuration": [
+      {
+        "id": "vscodeknowledgemap",
+        "title": "Knowledge Map",
+        "order": 1,
+        "properties": {
+          "knowledgeMap.ignoreList": {
+            "scope": "resource",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "uniqueItems": true,
+            "markdownDescription": "An array list of file extensions to exclude from the knowledge map. Eg. ```*.txt, .gitignore, .vscodeignore```"
+          },
+          "knowledgeMap.numberConcurrentProcesses": {
+            "type": "integer",
+            "default": 1,
+            "description": "The number of concurrent processes to use when parsing files. Default is 1."
+          }
+        }
       }
     ]
   },
@@ -71,6 +98,7 @@
     "@vscode/l10n": "^0.0.10",
     "@vscode/vsce": "^3.2.1",
     "grunt-cli": "^1.5.0",
+    "micromatch": "^4.0.8",
     "remark": "^15.0.1",
     "remark-parse": "^11.0.0",
     "unist-util-visit": "^5.0.0"

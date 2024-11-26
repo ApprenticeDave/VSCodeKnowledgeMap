@@ -9,9 +9,16 @@ export class FileMonitor {
   private watcher: vscode.FileSystemWatcher | undefined;
   private fileProcessor: FileProcessor;
   private eventMonitor: EventMonitor;
+  private ignorelist: string[] | undefined = [];
 
   constructor(eventMonitor: EventMonitor, isGraphPopulated: boolean) {
     this.eventMonitor = eventMonitor;
+    const numberofprocesses = vscode.workspace
+      .getConfiguration()
+      .get("knowledgeMap.numberConcurrentProcesses");
+    this.ignorelist = vscode.workspace
+      .getConfiguration()
+      .get("knowledgeMap.ignoreLists");
     this.fileProcessor = new FileProcessor(1, this.eventMonitor);
     // Create a file system watcher for the extension folder
     this.init(isGraphPopulated);
@@ -57,6 +64,7 @@ export class FileMonitor {
 
   private onFileCreate(uri: vscode.Uri) {
     Logger.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
+
     this.emitEntryAdd(uri);
   }
 
@@ -89,6 +97,20 @@ export class FileMonitor {
         "contains"
       );
     }
+  }
+
+  public static isIgnored(
+    uri: vscode.Uri,
+    patterns: string[] | undefined
+  ): boolean {
+    if (patterns) {
+      const micromatch = require("micromatch");
+
+      if (micromatch([uri.path], patterns).length > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public async GetFilesAndFoldersForWorkspace() {

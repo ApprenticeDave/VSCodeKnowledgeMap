@@ -11,21 +11,24 @@ let extensionContext: vscode.ExtensionContext;
 // This method is called when your extension is activated
 export async function activate(context: vscode.ExtensionContext) {
   Logger.log("Extension - Activating", LogLevel.Info);
-
   eventMonitor = new EventMonitor();
   extensionContext = context;
 
-  const provider = new KnowledgeMapViewProvider(
-    context.extensionUri,
-    eventMonitor
+  const provider = vscode.window.registerWebviewViewProvider(
+    KnowledgeMapViewProvider.viewType,
+    new KnowledgeMapViewProvider(context.extensionUri, eventMonitor)
   );
 
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(
-      KnowledgeMapViewProvider.viewType,
-      provider
-    )
+  const refreshCommand = vscode.commands.registerCommand(
+    "vscodeknowledgemap.refreshKnowledgeMap",
+    () => {
+      // Implement the logic to refresh your knowledge map
+      vscode.window.showInformationMessage("Knowledge Map refreshed!");
+    }
   );
+
+  context.subscriptions.push(provider);
+  context.subscriptions.push(refreshCommand);
 }
 
 // Function to handle workspace changes
