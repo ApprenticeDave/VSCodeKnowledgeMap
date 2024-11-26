@@ -3,6 +3,7 @@ import { FileProcessor } from "./FileProcessor";
 import { Logger, LogLevel } from "../Utils/Logger";
 import { EventMonitor } from "../Utils/EventMonitor";
 import { FolderAndFileUtils } from "../Utils/FolderAndFileUtils";
+import { Utils } from "../Utils/Utils";
 import path from "path";
 
 export class FileMonitor {
@@ -64,8 +65,9 @@ export class FileMonitor {
 
   private onFileCreate(uri: vscode.Uri) {
     Logger.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
-
-    this.emitEntryAdd(uri);
+    if (!Utils.isIgnored(uri, this.ignorelist)) {
+      this.emitEntryAdd(uri);
+    }
   }
 
   private onFileDelete(uri: vscode.Uri) {
@@ -97,20 +99,6 @@ export class FileMonitor {
         "contains"
       );
     }
-  }
-
-  public static isIgnored(
-    uri: vscode.Uri,
-    patterns: string[] | undefined
-  ): boolean {
-    if (patterns) {
-      const micromatch = require("micromatch");
-
-      if (micromatch([uri.path], patterns).length > 0) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public async GetFilesAndFoldersForWorkspace() {
