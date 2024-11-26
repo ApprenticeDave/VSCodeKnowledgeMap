@@ -31,4 +31,14 @@ suite("FileMonitor Test Suite", () => {
     const result = Utils.isIgnored(uri, ignoreAll);
     assert.strictEqual(result, false);
   });
+
+  test("isJson Test valid json", () => {
+    const result = Utils.IsJson('{"test": "test"}');
+    assert.strictEqual(result, true);
+  });
+
+  test("isJson Test invalid", () => {
+    const result = Utils.IsJson('test": "test"}');
+    assert.strictEqual(result, true);
+  });
 });
