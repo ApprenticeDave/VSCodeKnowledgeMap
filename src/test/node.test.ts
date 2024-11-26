@@ -2,7 +2,7 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { Node } from "../KnowledgeGraph/Node";
 
-suite("Extension Test Suite", () => {
+suite("Extension - Node Test Suite", () => {
   vscode.window.showInformationMessage("Start all Node.");
 
   test("Node constructor initializes properties correctly", () => {
@@ -44,8 +44,8 @@ suite("Extension Test Suite", () => {
     node.name = "Updated Node Name";
     node.nodetype = "folder";
 
-    assert.equal((node.name = "Updated Node Name"), true);
-    assert.equal((node.nodetype = "folder"), true);
+    assert.equal(node.name === "Updated Node Name", true);
+    assert.equal(node.nodetype === "folder", true);
   });
 
   test("Creating multiple Node instances performs under threshold", () => {
