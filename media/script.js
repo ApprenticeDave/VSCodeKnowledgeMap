@@ -1,6 +1,7 @@
 //https://github.com/vasturiano/3d-force-graph?tab=readme-ov-file
-import { CSS2DRenderer, CSS2DObject } from '//unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
-import SpriteText from "//unpkg.com/three-spritetext/dist/three-spritetext.mjs";
+import { CSS2DRenderer, CSS2DObject } from 'CSS2D';
+import SpriteText from 'SpriteText';
+
 
 console.log("Knowledge View - Panel Script - DOM Loaded");
 let vscode;
@@ -28,7 +29,7 @@ const initData = {
 };
 
 const elem = document.getElementById("glCanvas");
-const backgroundcolour = window.getComputedStyle(document.body).getPropertyValue('--vscode-merge-commonContentBackground');
+const backgroundcolour = window.getComputedStyle(document.body).getPropertyValue('--vscode-editor-background');
 
 // Handle messages from the extension
 window.addEventListener('message', event => {

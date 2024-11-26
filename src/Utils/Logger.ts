@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 
 export enum LogLevel {
-  Info = "INFO",
-  Warn = "WARN",
-  Error = "ERROR",
+  Info = "info",
+  Warn = "warn",
+  Error = "error",
 }
 
 export class Logger {

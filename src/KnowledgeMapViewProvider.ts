@@ -175,9 +175,17 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
                 <link href="${styleUri}" rel="stylesheet">
-               
-                <script  nonce="${nonce}" crossorigin="anonymous" src="http://unpkg.com/3d-force-graph"></script>
-                <script type="importmap">{ "imports": { "three": "https://unpkg.com/three/build/three.module.js" }}</script>
+              
+                <script  nonce="${nonce}" type="importmap">
+                { 
+                  "imports": { 
+                    "three": "https://unpkg.com/three/build/three.module.js", 
+                    "SpriteText" : "https://unpkg.com/three-spritetext/dist/three-spritetext.mjs",
+                    "CSS2D": "https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js"
+                  }
+                }
+                </script>
+                <script nonce='${nonce}' integrity='sha384-VBHo9QV4TsNpgSaAzBubIBIEdydupStwcesSWycClIfvhaJI4tS5noz/nX+ejBJg' crossorigin='anonymous' src="https://unpkg.com/3d-force-graph"></script>
             </head>
             <body>
                 <div id="glCanvas"></div>
