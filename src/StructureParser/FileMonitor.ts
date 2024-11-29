@@ -19,7 +19,7 @@ export class FileMonitor {
       .get("knowledgeMap.numberConcurrentProcesses");
     this.ignorelist = vscode.workspace
       .getConfiguration()
-      .get("knowledgeMap.ignoreLists");
+      .get("knowledgeMap.ignoreList");
     this.fileProcessor = new FileProcessor(1, this.eventMonitor);
     // Create a file system watcher for the extension folder
     this.init(isGraphPopulated);
@@ -65,7 +65,7 @@ export class FileMonitor {
 
   private onFileCreate(uri: vscode.Uri) {
     Logger.log(`File Monitor - File created: ${uri.fsPath}`, LogLevel.Info);
-    if (!Utils.isIgnored(uri, this.ignorelist)) {
+    if (!Utils.isMatched(uri.path, this.ignorelist)) {
       this.emitEntryAdd(uri);
     }
   }
@@ -85,20 +85,34 @@ export class FileMonitor {
     const entryPath = uri.fsPath;
     const entryName = path.basename(uri.fsPath);
     const entryType = isWorkspace ? "workspace" : uri.scheme;
+
+    if (!Utils.isMatched(entryPath, this.ignorelist)) {
+      Logger.log(
+        `File Monitor - Adding ${entryType} Item - ${entryPath}`,
+        LogLevel.Info
+      );
+      this.eventMonitor.emit("NodeAdded", entryPath, entryName, entryType);
+      this.fileProcessor.createFileTask(uri.fsPath)();
+      if (!isWorkspace) {
+        this.eventMonitor.emit(
+          "EdgeAdd",
+          FolderAndFileUtils.getFileDirectory(uri),
+          uri.fsPath,
+          "contains"
+        );
+      }
+    }
+  }
+
+  private emitEntryUpdate(uri: vscode.Uri) {
+    const entryPath = uri.fsPath;
+    const entryName = path.basename(uri.fsPath);
     Logger.log(
-      `File Monitor - Adding ${entryType} Item - ${entryPath}`,
+      `File Monitor - Updating File Item - ${entryPath}`,
       LogLevel.Info
     );
-    this.eventMonitor.emit("NodeAdded", entryPath, entryName, entryType);
+    this.eventMonitor.emit("NodeUpdated", entryPath, entryName);
     this.fileProcessor.createFileTask(uri.fsPath)();
-    if (!isWorkspace) {
-      this.eventMonitor.emit(
-        "EdgeAdd",
-        FolderAndFileUtils.getFileDirectory(uri),
-        uri.fsPath,
-        "contains"
-      );
-    }
   }
 
   public async GetFilesAndFoldersForWorkspace() {

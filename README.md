@@ -27,7 +27,7 @@ Shows a graph of all the files in a workspace and their relationships relative t
 
 ### Markdown File Support
 
-Currently extracts links out of markdown files and adds links to files using file fully qualified URI as the Unique Identifier.
+Currently extracts links out of markdown files and adds links to files using file fully qualified URI as the Unique Identifier. Also supports external references like http links and creates those as seperate nodes.
 
 ```
     [Text](/users/username/desktop/test.md)
@@ -43,7 +43,7 @@ Visual Studio - Knowledge Map Extension currently does not leverage any telemetr
 
 ## Support Policy
 
-I am currently the only person working on this so i will do my best to get to any issues you identify.
+I am currently the only person working on this so I will do my best to get to any issues you identify. If you find a bug feel free to send it my way will try get to it, or feel free to do a pull request.
 
 ## Contributing
 

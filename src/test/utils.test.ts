@@ -6,39 +6,54 @@ suite("FileMonitor Test Suite", () => {
   vscode.window.showInformationMessage("Start all tests.");
 
   const ignoreAllTxt = ["**/*.txt"];
-  const ignoreAll = ["**/test/**"];
+  const ignoreAllTestFolder = ["**/test/**"];
+  const ignoreDotFolder = ["**/.vscode/**"];
+  const goodSimpleJson = '{"test": "test"}';
+  const badSimpleJson = 'test": "test"}';
 
-  test("IsIgnored Test Basic wild card", () => {
-    const uri = vscode.Uri.file("/Users/daverussell/test/test.txt");
-    const result = Utils.isIgnored(uri, ignoreAllTxt);
+  test("IsMatched Test Basic wild card", () => {
+    const uri = "/Users/username/test/test.txt";
+    const result = Utils.isMatched(uri, ignoreAllTxt);
     assert.strictEqual(result, true);
   });
 
-  test("IsIgnored Test Basic Folder Wild card", () => {
-    const uri = vscode.Uri.file("/Users/daverussell/test/test.txt");
-    const result = Utils.isIgnored(uri, ignoreAll);
+  test("IsMatched Test Basic Folder Wild card", () => {
+    const uri = "/Users/username/test/test.txt";
+    const result = Utils.isMatched(uri, ignoreAllTestFolder);
     assert.strictEqual(result, true);
   });
 
-  test("IsIgnored Test Basic wild card passthrough", () => {
-    const uri = vscode.Uri.file("/Users/daverussell/test/temp.md");
-    const result = Utils.isIgnored(uri, ignoreAllTxt);
+  test("IsMatched Test Basic wild card passthrough", () => {
+    const uri = "/Users/username/test/temp.md";
+    const result = Utils.isMatched(uri, ignoreAllTxt);
     assert.strictEqual(result, false);
   });
 
-  test("IsIgnored Test Basic Folder Wild card Passthrough", () => {
-    const uri = vscode.Uri.file("/Users/daverussell/temp/test.txt");
-    const result = Utils.isIgnored(uri, ignoreAll);
+  test("IsMatched Test Basic Folder Wild card Passthrough", () => {
+    const uri = "/Users/username/temp/test.txt";
+    const result = Utils.isMatched(uri, ignoreAllTestFolder);
     assert.strictEqual(result, false);
+  });
+
+  test("IsMatched Test Dot Folder Wild card", () => {
+    const uri = "/Users/username/temp/.vscode";
+    const result = Utils.isMatched(uri, ignoreDotFolder);
+    assert.strictEqual(result, true);
+  });
+
+  test("IsMatched Test Dot Folder Subfolders Wild card", () => {
+    const uri = "/Users/username/temp/.vscode/settings.json";
+    const result = Utils.isMatched(uri, ignoreDotFolder);
+    assert.strictEqual(result, true);
   });
 
   test("isJson Test valid json", () => {
-    const result = Utils.IsJson('{"test": "test"}');
+    const result = Utils.IsJson(goodSimpleJson);
     assert.strictEqual(result, true);
   });
 
   test("isJson Test invalid", () => {
-    const result = Utils.IsJson('test": "test"}');
-    assert.strictEqual(result, true);
+    const result = Utils.IsJson(badSimpleJson);
+    assert.strictEqual(result, false);
   });
 });

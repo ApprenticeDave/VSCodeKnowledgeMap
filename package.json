@@ -3,7 +3,7 @@
   "displayName": "Visual Studio Code Knowledge Map",
   "publisher": "DavidRussell",
   "description": "This extension will automatically parse files and folders in your open workspaces and build a graph of all the relationships between the items.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "preview": true,
   "license": "MIT",
   "engines": {

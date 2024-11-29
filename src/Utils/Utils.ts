@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
 
 export class Utils {
-  constructor() {}
-
   public static IsJson(input: any): boolean {
     try {
       const json = JSON.parse(input);
@@ -12,17 +10,11 @@ export class Utils {
     }
   }
 
-  public static isIgnored(
-    uri: vscode.Uri,
+  public static isMatched(
+    input: string,
     patterns: string[] | undefined
   ): boolean {
-    if (patterns) {
-      const micromatch = require("micromatch");
-
-      if (micromatch([uri.path], patterns).length > 0) {
-        return true;
-      }
-    }
-    return false;
+    const micromatch = require("micromatch");
+    return micromatch.isMatch(input, patterns);
   }
 }

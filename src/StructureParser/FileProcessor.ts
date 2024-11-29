@@ -6,7 +6,7 @@ import { Logger, LogLevel } from "../Utils/Logger";
 import { EventMonitor } from "../Utils/EventMonitor";
 
 export class FileProcessor {
-  private processors = new Map<string, iLinker>();
+  private processors: iLinker[] = [];
   private taskQueue: (() => Promise<void>)[] = [];
   private activeWorkers: number = 0;
   private maxWorkers: number;
@@ -16,7 +16,7 @@ export class FileProcessor {
     this.maxWorkers = maxWorkers;
     this.eventMonitor = eventMonitor;
     // Convert this to a factory
-    this.processors.set(".md", new MarkdownProcessor(this.eventMonitor));
+    this.processors.push(new MarkdownProcessor(this.eventMonitor));
   }
 
   // Add a task to the queue
@@ -50,38 +50,22 @@ export class FileProcessor {
   public createFileTask(filePath: string): () => Promise<void> {
     Logger.log(`File Processor - Creating File ${filePath}`, LogLevel.Info);
     return async () => {
-      const ext = path.extname(filePath).toLowerCase();
-      switch (ext) {
-        case ".md":
-          Logger.log(
-            `Adding Markdown file: ${filePath} to queue.`,
-            LogLevel.Info
-          );
-          this.processors
-            .get(".md")
-            ?.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
-        default:
-          Logger.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
-      }
+      this.processors
+        .filter((processor) => processor.canProcess(filePath))
+        .forEach((processor) => {
+          processor.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
+        });
     };
   }
 
   public updateFileTask(filePath: string): () => Promise<void> {
     Logger.log(`File Processor - File Updated ${filePath}`, LogLevel.Info);
     return async () => {
-      const ext = path.extname(filePath).toLowerCase();
-      switch (ext) {
-        case ".md":
-          Logger.log(
-            `Adding Markdown file: ${filePath} to queue.`,
-            LogLevel.Info
-          );
-          this.processors
-            .get(".md")
-            ?.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
-        default:
-          Logger.log(`Unsupported file type: ${ext}`, LogLevel.Warn);
-      }
+      this.processors
+        .filter((processor) => processor.canProcess(filePath))
+        .forEach((processor) => {
+          //TODO: process and get outcomes.processor.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
+        });
     };
   }
 }
