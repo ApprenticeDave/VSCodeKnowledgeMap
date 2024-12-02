@@ -1,7 +1,7 @@
 //https://github.com/vasturiano/3d-force-graph?tab=readme-ov-file
 import { CSS2DRenderer, CSS2DObject } from 'CSS2D';
 import SpriteText from 'SpriteText';
-
+import { UnrealBloomPass } from '//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 console.log("Knowledge View - Panel Script - DOM Loaded");
 let vscode;
@@ -184,12 +184,12 @@ function removeEdge(edge) {
   }
 }
 
-function sendOpenFileMessage(node) {
+function sendOpenMessage(node) {
   if (typeof vscode === 'undefined') {
     console.error('Knowledge View - Panel Script - Executing outside VSCode');
   } else {
     vscode.postMessage({
-      command: 'openFile',
+      command: 'openNode',
       filePath: node.id
     });
   }
@@ -236,6 +236,7 @@ const Graph = ForceGraph3D({
   .backgroundColor(backgroundcolour)
   .nodeAutoColorBy('group')
   .nodeLabel('name')
+  .nodeResolution([12])
   .nodeThreeObjectExtend(true)
   .nodeThreeObject(node => {
     const nodeEl = document.createElement('div');
@@ -244,6 +245,7 @@ const Graph = ForceGraph3D({
     nodeEl.className = 'node-label';
     return new CSS2DObject(nodeEl);
   })
+  .linkAutoColorBy('relationship')
   .linkCurvature(link => {
     if (link.curvature === undefined) {
       const totaledges = initData.links.filter(l => (l.source.id === link.source.id && l.target.id === link.target.id) || (l.target.id === link.source.id && l.source.id === link.target.id)).length;
@@ -259,18 +261,19 @@ const Graph = ForceGraph3D({
     const index = initData.links.indexOf(l => l.source.id === link.source.id);
     return calculateRotation(index, totaledges);
   })
-  .linkDirectionalParticles(link => { return 1 })
-  .linkWidth(link => { return link.weight / 10; })
+  .linkDirectionalParticleWidth(link => { return 1; })
+  //.linkDirectionalParticleSpeed(d => d.value * 0.001)
+  .linkDirectionalParticles(link => { return 1; })
   .linkThreeObjectExtend(true)
   .linkThreeObject(link => {
     const sprite = new SpriteText(`${link.relationship}`);
     sprite.color = 'lightgrey';
-    sprite.textHeight = 1.5;
+    sprite.textHeight = 2;
     sprite.link = link;
     return sprite;
   })
   .onNodeClick(node => {
-    sendOpenFileMessage(node);
+    sendOpenNodeMessage(node);
   })
   .linkPositionUpdate((sprite, { start, end }) => {
     if (sprite.link.__curve) {
@@ -298,3 +301,4 @@ const Graph = ForceGraph3D({
     }
   })
   .graphData(initData);
+

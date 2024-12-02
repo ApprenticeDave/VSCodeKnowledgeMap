@@ -8,12 +8,15 @@ import { Edge } from "../../KnowledgeGraph/Edge";
 export class MarkdownProcessor implements iLinker {
   private eventMonitor: EventMonitor;
   public ProcesscorName: string = "MarkdownProcessor";
-  private processorPattern = ["*.md"];
+  private processorPattern = ["**/*.md"];
   constructor(eventMonitor: EventMonitor) {
     this.eventMonitor = eventMonitor;
   }
-  canProcess(fileURI: string): boolean {
-    return Utils.isMatched(fileURI, this.processorPattern);
+
+  public canProcess(fileURI: string): boolean {
+    const isMatched = Utils.isMatched(fileURI, this.processorPattern);
+    Logger.log("MarkdownProcessor canProcess: " + isMatched, LogLevel.Info);
+    return isMatched;
   }
 
   public async ProcessContent(fileURI: string, content: string): Promise<void> {
@@ -23,7 +26,7 @@ export class MarkdownProcessor implements iLinker {
     Logger.log(`Found links: ${JSON.stringify(links)}`, LogLevel.Info);
     (await links).forEach((key, value) => {
       this.eventMonitor.emit("NodeAdded", key, value, "documentlink");
-      this.eventMonitor.emit("EdgeAdd", fileURI, key, value);
+      this.eventMonitor.emit("EdgeAdd", fileURI, key, "reference");
     });
   }
 

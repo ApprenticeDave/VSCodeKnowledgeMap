@@ -11,6 +11,7 @@ export class FileProcessor {
   private activeWorkers: number = 0;
   private maxWorkers: number;
   private eventMonitor: EventMonitor;
+  private running: boolean = false;
 
   constructor(maxWorkers: number, eventMonitor: EventMonitor) {
     this.maxWorkers = maxWorkers;
@@ -19,43 +20,56 @@ export class FileProcessor {
     this.processors.push(new MarkdownProcessor(this.eventMonitor));
   }
 
-  // Add a task to the queue
-  public addTask(task: () => Promise<void>): void {
-    this.taskQueue.push(task);
+  public processStart() {
+    this.running = true;
     this.processQueue();
   }
 
-  // Process the task queue
-  private async processQueue(): Promise<void> {
-    if (this.activeWorkers >= this.maxWorkers) {
-      return;
-    }
+  public processStop() {
+    this.running = false;
+  }
 
-    const task = this.taskQueue.shift();
-    if (!task) {
-      return;
-    }
-
-    this.activeWorkers++;
-    try {
-      await task();
-    } catch (error) {
-      Logger.log("Task failed:", LogLevel.Error);
-    } finally {
-      this.activeWorkers--;
+  // Add a task to the queue
+  private addTask(task: () => Promise<void>): void {
+    this.taskQueue.push(task);
+    if (this.running) {
       this.processQueue();
     }
   }
 
-  public createFileTask(filePath: string): () => Promise<void> {
+  // Process the task queue
+  private async processQueue(): Promise<void> {
+    if (this.running) {
+      if (this.activeWorkers >= this.maxWorkers) {
+        return;
+      }
+
+      const task = this.taskQueue.shift();
+      if (!task) {
+        return;
+      }
+
+      this.activeWorkers++;
+      try {
+        await task();
+      } catch (error) {
+        Logger.log("Task failed:", LogLevel.Error);
+      } finally {
+        this.activeWorkers--;
+        this.processQueue();
+      }
+    }
+  }
+
+  public createFileTask(filePath: string) {
     Logger.log(`File Processor - Creating File ${filePath}`, LogLevel.Info);
-    return async () => {
+    this.addTask(async () => {
       this.processors
         .filter((processor) => processor.canProcess(filePath))
         .forEach((processor) => {
           processor.ProcessContent(filePath, fs.readFileSync(filePath, "utf8"));
         });
-    };
+    });
   }
 
   public updateFileTask(filePath: string): () => Promise<void> {

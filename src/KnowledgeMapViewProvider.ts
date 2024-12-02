@@ -45,8 +45,8 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             LogLevel.Info
           );
           return;
-        case "openFile":
-          this.openFileInEditor(message.filePath);
+        case "openNode":
+          this.openNodeInEditor(message.filePath);
           break;
         case "WebViewLoaded":
           this.initEvents();
@@ -120,22 +120,30 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  public async openFileInEditor(filePath: string) {
+  public async openNodeInEditor(nodePath: string) {
     try {
-      const fileUri = vscode.Uri.file(filePath);
+      const fileUri = vscode.Uri.file(nodePath);
 
       // Optional: Check if the file is within the workspace
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
       if (!workspaceFolder) {
-        Logger.log(
-          `KnowledgeMap View Provider - File is not within the workspace: ${filePath}`,
-          LogLevel.Warn
-        );
-        return;
+        if (nodePath.startsWith("http")) {
+          Logger.log(
+            "KnowledgeMap View Provider - Opening external link - ${nodePath}",
+            LogLevel.Info
+          );
+          vscode.env.openExternal(vscode.Uri.parse(nodePath));
+        } else {
+          Logger.log(
+            `KnowledgeMap View Provider - File is not within the workspace - ${nodePath}`,
+            LogLevel.Warn
+          );
+          return;
+        }
+      } else {
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
       }
-
-      const document = await vscode.workspace.openTextDocument(fileUri);
-      await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
     } catch (error) {
       Logger.log(
         `KnowledgeMap View Provider - Error opening file: ${error}`,
