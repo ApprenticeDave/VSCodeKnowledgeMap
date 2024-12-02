@@ -49,6 +49,6 @@ I am currently the only person working on this so I will do my best to get to an
 
 I welcome your contributions and thank you for working to improve this code.
 
-## ßLicense
+## License
 
 MIT
