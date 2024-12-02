@@ -9,6 +9,7 @@ All notable changes to the "vscodeknowledgemap" extension will be documented in 
 - Minor refactoring of code to make it easier to test and find issues
 - Secured code script includes
 - Added Mo Tests
+- Fixed issue with file processor executing before initial nodes are added.
 
 ## [Unreleased - 0.0.7]
 
