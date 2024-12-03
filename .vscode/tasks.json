@@ -19,7 +19,7 @@
 		{
 			"label": "Knowledge Graph - Package VSIX",
 			"type": "shell",
-			"command": " ./node_modules/@vscode/vsce/vsce package --out 'packageouput'",
+			"command": " ./node_modules/@vscode/vsce/vsce package --pre-release --out 'packageouput'",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",
@@ -33,7 +33,7 @@
 		{
 			"label": "Knowledge Graph - Publish VSIX - Patch",
 			"type": "shell",
-			"command": " ./node_modules/@vscode/vsce/vsce publish patch",
+			"command": " ./node_modules/@vscode/vsce/vsce publish --pre-release patch",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",
@@ -47,7 +47,7 @@
 		{
 			"label": "Knowledge Graph - Publish VSIX - Major",
 			"type": "shell",
-			"command": " ./node_modules/@vscode/vsce/vsce publish major",
+			"command": " ./node_modules/@vscode/vsce/vsce publish --pre-release major",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",
@@ -61,7 +61,7 @@
 		{
 			"label": "Knowledge Graph - Publish VSIX - Minor",
 			"type": "shell",
-			"command": " ./node_modules/@vscode/vsce/vsce publish minor",
+			"command": " ./node_modules/@vscode/vsce/vsce publish --pre-release minor",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",

@@ -184,7 +184,7 @@ function removeEdge(edge) {
   }
 }
 
-function sendOpenMessage(node) {
+function sendOpenNodeMessage(node) {
   if (typeof vscode === 'undefined') {
     console.error('Knowledge View - Panel Script - Executing outside VSCode');
   } else {

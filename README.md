@@ -33,6 +33,9 @@ Currently extracts links out of markdown files and adds links to files using fil
     [Text](/users/username/desktop/test.md)
 ```
 
+Text: used for the node lable
+Link: is used for the uri unique identifier
+
 ## Requirements
 
 This extension leverages the [3D Force Directed Graph](https://vasturiano.github.io/3d-force-graph/) javascript library. Thanks to [Vasco Asturiano](https://observablehq.com/@vasturiano) who created this library.
