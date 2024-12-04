@@ -1,11 +1,8 @@
 name: Build and Push Release to VS Code Market Place 
 on:
-  push:
-      branches:
-      - 'master'
-      paths:
-      - '**/src/**'
-      - '**/media/**'
+  release:
+      types:
+      - created
 
 jobs:
   build:
@@ -21,7 +18,13 @@ jobs:
         with:
           node-version: 18.x
       - run: npm install
+      - run: npm install
       - run: xvfb-run -a npm test
         if: runner.os == 'Linux'
       - run: npm test
-        if: runner.os != 'Linux'
+        if: runner.os != 'Linux'        
+      - name: Publish
+        if: success() && startsWith(github.ref, 'refs/tags/') && matrix.os == 'ubuntu-latest'
+        run: npm run publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
