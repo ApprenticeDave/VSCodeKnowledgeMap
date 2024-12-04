@@ -5,6 +5,7 @@ All notable changes to the "vscodeknowledgemap" extension will be documented in 
 ## [Unreleased - 0.0.9]
 
 - Fixed Node not opening click
+- Fixed unpkg SHA issue preventing script loading
 
 ## [Unreleased - 0.0.8]
 
