@@ -9,3 +9,4 @@ node_modules
 l10n/bundle.l10n.json
 l10n/bundle.l10n.qps-ploc.json
 package.nls.qps-ploc.json
+.DS_Store
