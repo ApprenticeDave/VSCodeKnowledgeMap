@@ -11,12 +11,17 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   private knowledgeGraph?: KnowledgeGraph;
   private fileMonitor?: FileMonitor;
   private webviewView?: vscode.WebviewView;
-
+  private forcegraphSha: string =
+    "sha384-EOtdclDeZjD2OIuHLRVD69URQBcPkwvQOXng4RCP025pd0wHn410ghSudxpCbVBJ";
+  private forgraphURI: string =
+    "https://unpkg.com/3d-force-graph@1.69.9/dist/3d-force-graph.js";
   constructor(
     private readonly extensionUri: vscode.Uri,
     eventMonitor?: EventMonitor
   ) {
     this.eventMonitor = eventMonitor || new EventMonitor();
+
+    this.forcegraphSha;
   }
 
   public resolveWebviewView(
@@ -178,7 +183,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta http-equiv="Content-Security-Policy" 
-                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} http://unpkg.com/  https://unpkg.com/three/build/three.module.js 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} https://unpkg.com/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
                 />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
@@ -193,7 +198,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
                   }
                 }
                 </script>
-                <script nonce='${nonce}' integrity='sha384-VBHo9QV4TsNpgSaAzBubIBIEdydupStwcesSWycClIfvhaJI4tS5noz/nX+ejBJg' crossorigin='anonymous' src="https://unpkg.com/3d-force-graph"></script>
+                <script nonce='${nonce}' integrity='${this.forcegraphSha}' crossorigin='anonymous' src="${this.forgraphURI}"></script>
             </head>
             <body>
                 <div id="glCanvas"></div>

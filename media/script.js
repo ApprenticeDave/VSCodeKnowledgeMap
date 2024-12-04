@@ -301,4 +301,3 @@ const Graph = ForceGraph3D({
     }
   })
   .graphData(initData);
-
