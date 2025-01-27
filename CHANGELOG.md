@@ -5,6 +5,7 @@ All notable changes to the "vscodeknowledgemap" extension will be documented in 
 ## [Unreleased - 0.0.10]
 
 - Refactor to improve maintenance and modifications
+- In advertantly add the context menu to create the graph for a single item #fix 26
 
 ## [Unreleased - 0.0.9]
 
