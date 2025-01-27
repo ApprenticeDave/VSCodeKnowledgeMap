@@ -98,13 +98,23 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       if (item) {
         const stat = await vscode.workspace.fs.stat(item.uri);
         if (stat.type === vscode.FileType.Directory) {
+
           const files = await vscode.workspace.fs.readDirectory(item.uri);
+
           for (const file of files) {
-            items.push({
-              uri: vscode.Uri.joinPath(item.uri, file[0]),
-              parent: item.uri,
-            });
+            let newfile = vscode.Uri.joinPath(item.uri, file[0]);
+            if (
+              this.knowledgeGraph
+                ?.getNodes()
+                .filter((node) => node.id === newfile.fsPath).length === 0
+            ) {
+              items.push({
+                uri: newfile,
+                parent: item.uri,
+              });
+            }
           }
+
           this.eventMonitor.emit(
             "AddNode",
             item.uri.fsPath,

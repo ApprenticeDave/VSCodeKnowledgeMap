@@ -2,6 +2,11 @@
 
 All notable changes to the "vscodeknowledgemap" extension will be documented in this file.
 
+## [Unreleased - 0.0.11]
+
+- Fixed weird issue of duplication of attempts to add as well as cleaned and
+- Fixed file references
+
 ## [Unreleased - 0.0.10]
 
 - Refactor to improve maintenance and modifications
