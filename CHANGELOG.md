@@ -2,6 +2,10 @@
 
 All notable changes to the "vscodeknowledgemap" extension will be documented in this file.
 
+## [Unreleased - 0.0.10]
+
+- Refactor to improve maintenance and modifications
+
 ## [Unreleased - 0.0.9]
 
 - Fixed Node not opening click

@@ -45,10 +45,19 @@
     },
     "commands": [
       {
-        "command": "vscodeknowledgemap.RefreshKnowledgeMap",
-        "title": "Refresh View"
+        "command": "vscodeknowledgemap.OpenKnowledgeMapAt",
+        "title": "Display Map For.."
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "vscodeknowledgemap.OpenKnowledgeMapAt",
+          "when": "resourceScheme == 'file' || resourceScheme == 'folder'",
+          "group": "KnowledgeMapGroup"
+        }
+      ]
+    },
     "configuration": [
       {
         "id": "vscodeknowledgemap",
