@@ -2,8 +2,7 @@ import { iLinker } from "../iLinker";
 import { Logger, LogLevel } from "../../Utils/Logger";
 import { EventMonitor } from "../../Utils/EventMonitor";
 import { Utils } from "../../Utils/Utils";
-import { Node } from "../../KnowledgeGraph/Node";
-import { Edge } from "../../KnowledgeGraph/Edge";
+import * as vscode from "vscode";
 
 export class MarkdownProcessor implements iLinker {
   private eventMonitor: EventMonitor;
@@ -13,27 +12,24 @@ export class MarkdownProcessor implements iLinker {
     this.eventMonitor = eventMonitor;
   }
 
-  public canProcess(fileURI: string): boolean {
-    const isMatched = Utils.isMatched(fileURI, this.processorPattern);
+  public canProcess(fileURI: vscode.Uri): boolean {
+    const isMatched = Utils.isMatched(fileURI.fsPath, this.processorPattern);
     Logger.log("MarkdownProcessor canProcess: " + isMatched, LogLevel.Info);
     return isMatched;
   }
 
-  public async ProcessContent(fileURI: string, content: string): Promise<void> {
+  public async ProcessContent(
+    fileURI: vscode.Uri,
+    content: string
+  ): Promise<void> {
     Logger.log(`Processing Markdown content: ${fileURI}`, LogLevel.Info);
     const links = this.extractLinks(content);
 
     Logger.log(`Found links: ${JSON.stringify(links)}`, LogLevel.Info);
     (await links).forEach((key, value) => {
-      this.eventMonitor.emit("NodeAdded", key, value, "documentlink");
-      this.eventMonitor.emit("EdgeAdd", fileURI, key, "reference");
+      this.eventMonitor.emit("AddNode", key, value, "link");
+      this.eventMonitor.emit("AddEdge", fileURI.fsPath, key, "reference");
     });
-  }
-
-  private async extractNodes(content: string): Promise<Node[]> {
-    const nodes: Node[] = [];
-    // No nodes to output for markdown at this point
-    return nodes;
   }
 
   private async extractLinks(content: string): Promise<Map<string, string>> {

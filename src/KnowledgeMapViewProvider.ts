@@ -1,30 +1,34 @@
 import * as vscode from "vscode";
-import { FolderAndFileUtils } from "./Utils/FolderAndFileUtils";
 import { Logger, LogLevel } from "./Utils/Logger";
 import { KnowledgeGraph } from "./KnowledgeGraph/KnowledgeGraph";
 import { EventMonitor } from "./Utils/EventMonitor";
-import { FileMonitor } from "./StructureParser/FileMonitor";
+import { ItemProcessor } from "./StructureParser/ItemProcessor";
+import { Node } from "./KnowledgeGraph/Node";
+import { Edge } from "./KnowledgeGraph/Edge";
+import * as path from "path";
 
 export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "vscodeknowledgemap.knowledgeMapView";
   private eventMonitor: EventMonitor;
   private knowledgeGraph?: KnowledgeGraph;
-  private fileMonitor?: FileMonitor;
   private webviewView?: vscode.WebviewView;
   private forcegraphSha: string =
     "sha384-EOtdclDeZjD2OIuHLRVD69URQBcPkwvQOXng4RCP025pd0wHn410ghSudxpCbVBJ";
   private forgraphURI: string =
     "https://unpkg.com/3d-force-graph@1.69.9/dist/3d-force-graph.js";
+
+  private rootUris: vscode.Uri[];
+  private itemProcessor?: ItemProcessor;
   constructor(
     private readonly extensionUri: vscode.Uri,
-    eventMonitor?: EventMonitor
+    rootUri: vscode.Uri[]
   ) {
-    this.eventMonitor = eventMonitor || new EventMonitor();
-
-    this.forcegraphSha;
+    this.eventMonitor = new EventMonitor();
+    this.extensionUri = extensionUri;
+    this.rootUris = rootUri;
   }
 
-  public resolveWebviewView(
+  public async resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
     token: vscode.CancellationToken
@@ -42,7 +46,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     );
 
     // Set up event listeners
-    this.webviewView.webview.onDidReceiveMessage((message) => {
+    this.webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "log":
           Logger.log(
@@ -51,19 +55,83 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
           );
           return;
         case "openNode":
+          Logger.log(
+            `KnowledgeMap View Provider - WebGL Script - Open file in editor ${message.filePath}`,
+            LogLevel.Info
+          );
           this.openNodeInEditor(message.filePath);
           break;
         case "WebViewLoaded":
+          Logger.log(
+            "KnowledgeMap View Provider - WebGL Script - Webview Loaded",
+            LogLevel.Info
+          );
+
           this.initEvents();
           this.knowledgeGraph = new KnowledgeGraph(this.eventMonitor);
-
-          this.fileMonitor = new FileMonitor(
-            this.eventMonitor,
-            this.knowledgeGraph.getNodes().length > 0
-          );
+          this.itemProcessor = new ItemProcessor(this.eventMonitor);
+          await this.Generate();
+          await this.itemProcessor.start();
           break;
       }
     }, undefined);
+  }
+
+  public async updateRootUris(rootUri: vscode.Uri[]) {
+    this.itemProcessor?.stop();
+    this.itemProcessor?.clearTasks();
+    this.knowledgeGraph?.clearGraph();
+    this.rootUris = rootUri;
+    this.Generate();
+    this.itemProcessor?.start();
+  }
+
+  private async Generate() {
+    let items: { uri: vscode.Uri; parent?: vscode.Uri }[] = [];
+
+    for (const turi of this.rootUris) {
+      items.push({ uri: turi });
+    }
+
+    while (items.length > 0) {
+      const item = items.shift();
+      if (item) {
+        const stat = await vscode.workspace.fs.stat(item.uri);
+        if (stat.type === vscode.FileType.Directory) {
+          const files = await vscode.workspace.fs.readDirectory(item.uri);
+          for (const file of files) {
+            items.push({
+              uri: vscode.Uri.joinPath(item.uri, file[0]),
+              parent: item.uri,
+            });
+          }
+          this.eventMonitor.emit(
+            "AddNode",
+            item.uri.fsPath,
+            path.basename(item.uri.fsPath),
+            "folder"
+          );
+        } else if (stat.type === vscode.FileType.File) {
+          this.eventMonitor.emit(
+            "AddNode",
+            item.uri.fsPath,
+            path.basename(item.uri.fsPath),
+            "file"
+          );
+
+          this.itemProcessor?.createUriTask(item.uri);
+        }
+
+        if (item.parent) {
+          this.eventMonitor.emit(
+            "AddEdge",
+            item.parent.fsPath,
+            item.uri.fsPath,
+            "contain"
+          );
+        }
+      }
+    }
   }
 
   public initEvents() {
@@ -98,14 +166,6 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    this.eventMonitor.on("ClearView", (node) => {
-      if (this.webviewView) {
-        this.webviewView.webview.postMessage({
-          command: "clearView",
-        });
-      }
-    });
-
     this.eventMonitor.on("KnowledgeGraphEdgeAdded", (edge) => {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
@@ -120,6 +180,14 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
         this.webviewView.webview.postMessage({
           command: "removeEdge",
           node: edge,
+        });
+      }
+    });
+
+    this.eventMonitor.on("ClearView", (node) => {
+      if (this.webviewView) {
+        this.webviewView.webview.postMessage({
+          command: "clearView",
         });
       }
     });
@@ -157,6 +225,19 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     }
   }
 
+  public OpenKnowledgeMapAt(uri: vscode.Uri) {
+    Logger.log(
+      "KnowledgeMap View Provider - Opening Knowledge Map at: ${uri.fsPath}",
+      LogLevel.Info
+    );
+    this.itemProcessor?.stop();
+    this.itemProcessor?.clearTasks();
+    this.knowledgeGraph?.clearGraph();
+    this.rootUris = [uri];
+    this.Generate();
+    this.itemProcessor?.start();
+  }
+
   private getMapViewContent(
     webview: vscode.Webview,
     extensionUri: vscode.Uri
@@ -182,17 +263,17 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             <html lang="en">
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                <meta http-equiv="Content-Security-Policy" 
+                <meta http-equiv="Content-Security-Policy"
                 content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} https://unpkg.com/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
                 />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
                 <link href="${styleUri}" rel="stylesheet">
-              
+
                 <script  nonce="${nonce}" type="importmap">
-                { 
-                  "imports": { 
-                    "three": "https://unpkg.com/three/build/three.module.js", 
+                {
+                  "imports": {
+                    "three": "https://unpkg.com/three/build/three.module.js",
                     "SpriteText" : "https://unpkg.com/three-spritetext/dist/three-spritetext.mjs",
                     "CSS2D": "https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js"
                   }
@@ -202,6 +283,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             </head>
             <body>
                 <div id="glCanvas"></div>
+                <div id="kxDebug" class="debug"></div>
                 <script>
                   window.addEventListener('message', event => {
                     const message = event.data;
