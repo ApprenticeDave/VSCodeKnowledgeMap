@@ -5,7 +5,7 @@ node_modules
 .vscode-test/
 *.vsi
 *.vsix
-
+.github/copilot-instructions.md
 l10n/bundle.l10n.json
 l10n/bundle.l10n.qps-ploc.json
 package.nls.qps-ploc.json

@@ -78,7 +78,7 @@
             "uniqueItems": true,
             "markdownDescription": "An array list of file extensions to exclude from the knowledge map. Eg. ```*.txt, .gitignore, .vscodeignore```"
           },
-          "knowledgeMap.useGitIgnoreToFilterDiplayed": {
+          "knowledgeMap.useGitIgnoreToFilterDisplayed": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
