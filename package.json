@@ -3,12 +3,16 @@
   "displayName": "Visual Studio Code Knowledge Map",
   "publisher": "DavidRussell",
   "description": "This extension will automatically parse files and folders in your open workspaces and build a graph of all the relationships between the items.",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "preview": true,
   "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
   },
+  "activationEvents": [
+    "onCommand:vscodeknowledgemap.OpenKnowledgeMapAt",
+    "onView:vscodeknowledgemap.knowledgeMapView"
+  ],
   "extensionKind": [
     "ui",
     "workspace"
@@ -74,6 +78,12 @@
             "uniqueItems": true,
             "markdownDescription": "An array list of file extensions to exclude from the knowledge map. Eg. ```*.txt, .gitignore, .vscodeignore```"
           },
+          "knowledgeMap.useGitIgnoreToFilterDiplayed": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "If a gitignore file is present in the workspace, this will use it to filter the displayed items. This is useful for large workspaces where you want to ignore certain files or folders. Default is false."
+          },
           "knowledgeMap.numberConcurrentProcesses": {
             "type": "integer",
             "default": 1,
@@ -91,23 +101,24 @@
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "package": "./node_modules/@vscode/vsce/vsce package",
-    "publish": "./node_modules/@vscode/vsce/vsce publish"
+    "package": "npx vsce package",
+    "publish": "npx vsce publish"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.9",
-    "@types/node": "20.x",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
     "@types/vscode": "^1.95.0",
-    "@typescript-eslint/eslint-plugin": "^8.10.0",
-    "@typescript-eslint/parser": "^8.7.0",
+    "@typescript-eslint/eslint-plugin": "^8.29.1",
+    "@typescript-eslint/parser": "^8.29.1",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "eslint": "^9.13.0",
-    "typescript": "^5.6.3"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.24.0",
+    "typescript": "^5.8.3",
+    "vsce": "^2.15.0"
   },
   "dependencies": {
-    "@vscode/l10n": "^0.0.10",
-    "@vscode/vsce": "^3.2.1",
+    "@vscode/l10n": "^0.0.18",
+    "@vscode/vsce": "^3.3.2",
     "grunt-cli": "^1.5.0",
     "micromatch": "^4.0.8",
     "remark": "^15.0.1",
