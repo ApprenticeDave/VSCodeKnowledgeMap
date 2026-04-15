@@ -278,7 +278,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} https://unpkg.com/three@${this.threeVersion}/ https://unpkg.com/three-spritetext@${this.spriteTextVersion}/ https://unpkg.com/3d-force-graph@1.69.9/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}' ${webview.cspSource} https://unpkg.com/three@${this.threeVersion}/ https://unpkg.com/three-spritetext@${this.spriteTextVersion}/ https://unpkg.com/3d-force-graph@1.69.9/; style-src ${webview.cspSource};"
                 />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
@@ -305,16 +305,6 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             <body>
                 <div id="glCanvas"></div>
                 <div id="kxDebug" class="debug"></div>
-                <script>
-                  window.addEventListener('message', event => {
-                    const message = event.data;
-                    switch (message.command) {
-                      case 'setBackgroundColor':
-                        document.body.style.backgroundColor = message.color;
-                        break;
-                    }
-                  });
-                </script>
                 <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
             </body>
             </html>`;

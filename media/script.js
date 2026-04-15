@@ -56,6 +56,9 @@ window.addEventListener("message", (event) => {
     case "removeEdge":
       removeEdge(message.node);
       break;
+    case "setBackgroundColor":
+      document.body.style.backgroundColor = message.color;
+      break;
   }
 });
 
