@@ -9,10 +9,7 @@
   "engines": {
     "vscode": "^1.95.0"
   },
-  "activationEvents": [
-    "onCommand:vscodeknowledgemap.OpenKnowledgeMapAt",
-    "onView:vscodeknowledgemap.knowledgeMapView"
-  ],
+  "activationEvents": [],
   "extensionKind": [
     "ui",
     "workspace"
@@ -42,6 +39,7 @@
       "knowledge-map": [
         {
           "type": "webview",
+          "icon": "images/icon.svg",
           "id": "vscodeknowledgemap.knowledgeMapView",
           "name": "Knowledge Map"
         }

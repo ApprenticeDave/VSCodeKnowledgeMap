@@ -11,5 +11,8 @@
 	"azureAutomation.directory.basePath": "",
 	"chat.tools.terminal.autoApprove": {
 		"git checkout": true
-	}
+	},
+	"cSpell.words": [
+		"vscodeknowledgemap"
+	]
 }
