@@ -11,7 +11,6 @@ import { Utils } from "../Utils/Utils";
 export class ItemProcessor {
   private taskQueue: (() => Promise<void>)[] = [];
   private running: boolean = false;
-  private activeWorkers: number = 0;
   private maxWorkers: number;
   private processors: iLinker[];
   private ignorelist: string[];
@@ -44,9 +43,11 @@ export class ItemProcessor {
   }
 
   private async processQueue(): Promise<void> {
+    const executing: Set<Promise<void>> = new Set();
+
     while (this.running && this.taskQueue.length > 0) {
-      if (this.activeWorkers >= this.maxWorkers) {
-        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait before retrying
+      if (executing.size >= this.maxWorkers) {
+        await Promise.race(executing);
         continue;
       }
 
@@ -55,14 +56,21 @@ export class ItemProcessor {
         continue;
       }
 
-      this.activeWorkers++;
-      try {
-        await task();
-      } catch (error) {
-        Logger.log("Task failed:", LogLevel.Error);
-      } finally {
-        this.activeWorkers--;
-      }
+      const taskPromise = (async () => {
+        try {
+          await task();
+        } catch (error) {
+          Logger.log("Task failed:", LogLevel.Error);
+        }
+      })();
+
+      executing.add(taskPromise);
+      taskPromise.finally(() => executing.delete(taskPromise));
+    }
+
+    // Wait for all remaining in-progress tasks to finish
+    if (executing.size > 0) {
+      await Promise.all(executing);
     }
   }
 
