@@ -231,7 +231,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
 
       // Reject paths containing null bytes or control characters
-      if (/[\x00-\x1f]/.test(nodePath)) {
+      if (/[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(nodePath)) {
         Logger.log(
           `KnowledgeMap View Provider - Rejected path with control characters`,
           LogLevel.Warn,
