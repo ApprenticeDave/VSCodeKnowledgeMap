@@ -1,3 +1,5 @@
+/** @format */
+
 import * as vscode from "vscode";
 import { Logger, LogLevel } from "./Utils/Logger";
 import { KnowledgeGraph } from "./KnowledgeGraph/KnowledgeGraph";
@@ -17,11 +19,23 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   private forgraphURI: string =
     "https://unpkg.com/3d-force-graph@1.69.9/dist/3d-force-graph.js";
 
+  // Pinned CDN URLs and SRI hashes for Three.js ecosystem
+  private threeVersion: string = "0.160.0";
+  private spriteTextVersion: string = "1.8.2";
+  private threeSha: string =
+    "sha384-61S/Nu32S3E5+n+KpCOTb2eRYps6fVKm+9Gz1QBvSePFthb46f063Aa/qe/lykFZ";
+  private spriteTextSha: string =
+    "sha384-Aa/dIvnhkIC4B9HwK3sYztjSJ56ITPGNeqT7kgLipY6k0sLLSfxrszwUzhsIhrXd";
+  private css2dSha: string =
+    "sha384-oxPlnJSeUCYU9W3RMQswb4S/vFd4Bhxuy1Ffx0V2KJakWeb6n1gaqUtSE9Ic/F72";
+  private unrealBloomSha: string =
+    "sha384-R734/7SvtqjjeteDKG4qcQA0adDCZ1ZcKfYUZsbVr9qqHGlgSXH9eNN4b3NIgwuc";
+
   private rootUris: vscode.Uri[];
   private itemProcessor?: ItemProcessor;
   constructor(
     private readonly extensionUri: vscode.Uri,
-    rootUri: vscode.Uri[]
+    rootUri: vscode.Uri[],
   ) {
     this.eventMonitor = new EventMonitor();
     this.extensionUri = extensionUri;
@@ -31,7 +45,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   public async resolveWebviewView(
     webviewView: vscode.WebviewView,
     context: vscode.WebviewViewResolveContext,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ) {
     this.webviewView = webviewView;
 
@@ -42,7 +56,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
     this.webviewView.webview.html = this.getMapViewContent(
       webviewView.webview,
-      this.extensionUri
+      this.extensionUri,
     );
 
     // Set up event listeners
@@ -51,20 +65,20 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
         case "log":
           Logger.log(
             `KnowledgeMap View Provider - WebGL Script - ${message.text}`,
-            LogLevel.Info
+            LogLevel.Info,
           );
           return;
         case "openNode":
           Logger.log(
             `KnowledgeMap View Provider - WebGL Script - Open file in editor ${message.filePath}`,
-            LogLevel.Info
+            LogLevel.Info,
           );
           this.openNodeInEditor(message.filePath);
           break;
         case "WebViewLoaded":
           Logger.log(
             "KnowledgeMap View Provider - WebGL Script - Webview Loaded",
-            LogLevel.Info
+            LogLevel.Info,
           );
 
           this.initEvents();
@@ -109,14 +123,14 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             "AddNode",
             item.uri.fsPath,
             path.basename(item.uri.fsPath),
-            "folder"
+            "folder",
           );
         } else if (stat.type === vscode.FileType.File) {
           this.eventMonitor.emit(
             "AddNode",
             item.uri.fsPath,
             path.basename(item.uri.fsPath),
-            "file"
+            "file",
           );
 
           this.itemProcessor?.createUriTask(item.uri);
@@ -127,7 +141,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             "AddEdge",
             item.parent.fsPath,
             item.uri.fsPath,
-            "contain"
+            "contain",
           );
         }
       }
@@ -137,13 +151,13 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   public initEvents() {
     Logger.log(
       `KnowledgeMap View Provider - Init Events - Listen for Knowledgegraph Updates`,
-      LogLevel.Info
+      LogLevel.Info,
     );
     this.eventMonitor.on("KnowledgeGraphNodeAdded", (node) => {
       if (this.webviewView) {
         Logger.log(
           `KnowledgeMap View Provider - Adding Node to WebGL Panel: ${node}`,
-          LogLevel.Info
+          LogLevel.Info,
         );
         this.webviewView.webview.postMessage({
           command: "addNode",
@@ -152,7 +166,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       } else {
         Logger.log(
           `KnowledgeMap View Provider - Webview not initialized`,
-          LogLevel.Info
+          LogLevel.Info,
         );
       }
     });
@@ -203,13 +217,13 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
         if (nodePath.startsWith("http")) {
           Logger.log(
             "KnowledgeMap View Provider - Opening external link - ${nodePath}",
-            LogLevel.Info
+            LogLevel.Info,
           );
           vscode.env.openExternal(vscode.Uri.parse(nodePath));
         } else {
           Logger.log(
             `KnowledgeMap View Provider - File is not within the workspace - ${nodePath}`,
-            LogLevel.Warn
+            LogLevel.Warn,
           );
           return;
         }
@@ -220,7 +234,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     } catch (error) {
       Logger.log(
         `KnowledgeMap View Provider - Error opening file: ${error}`,
-        LogLevel.Error
+        LogLevel.Error,
       );
     }
   }
@@ -228,7 +242,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   public OpenKnowledgeMapAt(uri: vscode.Uri) {
     Logger.log(
       "KnowledgeMap View Provider - Opening Knowledge Map at: ${uri.fsPath}",
-      LogLevel.Info
+      LogLevel.Info,
     );
     this.itemProcessor?.stop();
     this.itemProcessor?.clearTasks();
@@ -240,17 +254,17 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
   private getMapViewContent(
     webview: vscode.Webview,
-    extensionUri: vscode.Uri
+    extensionUri: vscode.Uri,
   ): string {
     const scriptPathOnDisk = vscode.Uri.joinPath(
       extensionUri,
       "media",
-      "script.js"
+      "script.js",
     );
     const stylePathOnDisk = vscode.Uri.joinPath(
       extensionUri,
       "media",
-      "style.css"
+      "style.css",
     );
 
     // Convert the resource path to a webview URI
@@ -264,7 +278,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <meta http-equiv="Content-Security-Policy"
-                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} https://unpkg.com/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
+                content="default-src 'none'; img-src ${webview.cspSource} https:; script-src ${webview.cspSource} https://unpkg.com/three@${this.threeVersion}/ https://unpkg.com/three-spritetext@${this.spriteTextVersion}/ https://unpkg.com/3d-force-graph@1.69.9/ 'unsafe-inline'; style-src ${webview.cspSource} 'unsafe-inline';"
                 />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Knowledge Map</title>
@@ -273,9 +287,16 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
                 <script  nonce="${nonce}" type="importmap">
                 {
                   "imports": {
-                    "three": "https://unpkg.com/three/build/three.module.js",
-                    "SpriteText" : "https://unpkg.com/three-spritetext/dist/three-spritetext.mjs",
-                    "CSS2D": "https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js"
+                    "three": "https://unpkg.com/three@${this.threeVersion}/build/three.module.js",
+                    "SpriteText" : "https://unpkg.com/three-spritetext@${this.spriteTextVersion}/dist/three-spritetext.mjs",
+                    "CSS2D": "https://unpkg.com/three@${this.threeVersion}/examples/jsm/renderers/CSS2DRenderer.js",
+                    "UnrealBloom": "https://unpkg.com/three@${this.threeVersion}/examples/jsm/postprocessing/UnrealBloomPass.js"
+                  },
+                  "integrity": {
+                    "https://unpkg.com/three@${this.threeVersion}/build/three.module.js": "${this.threeSha}",
+                    "https://unpkg.com/three-spritetext@${this.spriteTextVersion}/dist/three-spritetext.mjs": "${this.spriteTextSha}",
+                    "https://unpkg.com/three@${this.threeVersion}/examples/jsm/renderers/CSS2DRenderer.js": "${this.css2dSha}",
+                    "https://unpkg.com/three@${this.threeVersion}/examples/jsm/postprocessing/UnrealBloomPass.js": "${this.unrealBloomSha}"
                   }
                 }
                 </script>
