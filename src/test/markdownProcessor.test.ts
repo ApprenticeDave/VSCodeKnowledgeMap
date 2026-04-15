@@ -1,0 +1,112 @@
+/** @format */
+
+import * as assert from "assert";
+import * as vscode from "vscode";
+import { MarkdownProcessor } from "../StructureParser/ItemTypeProcessors/MarkdownProcessor";
+import { EventMonitor } from "../Utils/EventMonitor";
+
+suite("MarkdownProcessor Test Suite", () => {
+  vscode.window.showInformationMessage("Start all MarkdownProcessor tests.");
+
+  let eventMonitor: EventMonitor;
+  let processor: MarkdownProcessor;
+
+  setup(() => {
+    eventMonitor = new EventMonitor();
+    processor = new MarkdownProcessor(eventMonitor);
+  });
+
+  test("MarkdownProcessor has correct processor name", () => {
+    assert.strictEqual(processor.ProcesscorName, "MarkdownProcessor");
+  });
+
+  test("canProcess returns true for markdown files", () => {
+    const uri = vscode.Uri.file("/path/to/file.md");
+    assert.strictEqual(processor.canProcess(uri), true);
+  });
+
+  test("canProcess returns false for non-markdown files", () => {
+    const uri = vscode.Uri.file("/path/to/file.txt");
+    assert.strictEqual(processor.canProcess(uri), false);
+  });
+
+  test("canProcess returns false for js files", () => {
+    const uri = vscode.Uri.file("/path/to/file.js");
+    assert.strictEqual(processor.canProcess(uri), false);
+  });
+
+  test("ProcessContent emits AddNode events for extracted links", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content = "[Google](https://google.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.ProcessContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 1);
+    assert.strictEqual(addedNodes[0].type, "link");
+  });
+
+  test("ProcessContent emits AddEdge events for extracted links", async () => {
+    const addedEdges: {
+      sourceUri: string;
+      targetUri: string;
+      relationship: string;
+    }[] = [];
+    eventMonitor.on(
+      "AddEdge",
+      (sourceUri: string, targetUri: string, relationship: string) => {
+        addedEdges.push({ sourceUri, targetUri, relationship });
+      }
+    );
+
+    const content = "[Google](https://google.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.ProcessContent(fileUri, content);
+
+    assert.strictEqual(addedEdges.length, 1);
+    assert.strictEqual(addedEdges[0].sourceUri, fileUri.fsPath);
+    assert.strictEqual(addedEdges[0].relationship, "reference");
+  });
+
+  test("ProcessContent handles multiple links", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content =
+      "[Google](https://google.com) and [GitHub](https://github.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.ProcessContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 2);
+  });
+
+  test("ProcessContent handles content with no links", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content = "This is plain text with no links.";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.ProcessContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 0);
+  });
+
+  test("ProcessContent handles empty content", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.ProcessContent(fileUri, "");
+
+    assert.strictEqual(addedNodes.length, 0);
+  });
+});

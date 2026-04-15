@@ -2,7 +2,7 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import { Utils } from "../Utils/Utils";
 
-suite("FileMonitor Test Suite", () => {
+suite("Utils Test Suite", () => {
   vscode.window.showInformationMessage("Start all tests.");
 
   const ignoreAllTxtPattern = ["**/*.txt"];
@@ -61,6 +61,42 @@ suite("FileMonitor Test Suite", () => {
 
   test("isJson Test invalid", () => {
     const result = Utils.IsJson(badSimpleJson);
+    assert.strictEqual(result, false);
+  });
+
+  test("isJson Test null input returns false", () => {
+    const result = Utils.IsJson(null);
+    assert.strictEqual(result, false);
+  });
+
+  test("isJson Test undefined input returns false", () => {
+    const result = Utils.IsJson(undefined);
+    assert.strictEqual(result, false);
+  });
+
+  test("isJson Test empty string returns false", () => {
+    const result = Utils.IsJson("");
+    assert.strictEqual(result, false);
+  });
+
+  test("isJson Test array json returns true", () => {
+    const result = Utils.IsJson('[1, 2, 3]');
+    assert.strictEqual(result, true);
+  });
+
+  test("isJson Test number string returns false", () => {
+    const result = Utils.IsJson("42");
+    assert.strictEqual(result, false);
+  });
+
+  test("isJson Test boolean string returns false", () => {
+    const result = Utils.IsJson("true");
+    assert.strictEqual(result, false);
+  });
+
+  test("isMatched with empty patterns returns false", () => {
+    const uri = "/Users/username/test/test.txt";
+    const result = Utils.isMatched(uri, []);
     assert.strictEqual(result, false);
   });
 });
