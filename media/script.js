@@ -1,7 +1,7 @@
 //https://github.com/vasturiano/3d-force-graph?tab=readme-ov-file
 import { CSS2DRenderer, CSS2DObject } from "CSS2D";
 import SpriteText from "SpriteText";
-import { UnrealBloomPass } from "//unpkg.com/three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { UnrealBloomPass } from "UnrealBloom";
 
 console.log("Knowledge View - Panel Script - DOM Loaded");
 let vscode;
