@@ -1,9 +1,12 @@
+/** @format */
+
 import * as fs from "fs";
 import * as vscode from "vscode";
 import { MarkdownProcessor } from "./ItemTypeProcessors/MarkdownProcessor";
 import { iLinker } from "./iLinker";
 import { Logger, LogLevel } from "../Utils/Logger";
 import { EventMonitor } from "../Utils/EventMonitor";
+import { Utils } from "../Utils/Utils";
 
 export class ItemProcessor {
   private taskQueue: (() => Promise<void>)[] = [];
@@ -17,9 +20,11 @@ export class ItemProcessor {
   constructor(eventMonitor: EventMonitor) {
     this.eventMonitor = eventMonitor;
     this.maxWorkers =
-      vscode.workspace.getConfiguration("knowledgeMap").get("maxWorkers") || 1;
+      vscode.workspace
+        .getConfiguration("knowledgeMap")
+        .get("numberConcurrentProcesses") || 1;
     this.ignorelist =
-      vscode.workspace.getConfiguration("knowledgeMap").get("ignorelist") || [];
+      vscode.workspace.getConfiguration("knowledgeMap").get("ignoreList") || [];
     this.processors = [new MarkdownProcessor(this.eventMonitor)];
   }
 
@@ -66,7 +71,7 @@ export class ItemProcessor {
   }
 
   public createUriTask(uri: vscode.Uri) {
-    if (this.ignorelist && this.ignorelist.includes(uri.fsPath)) {
+    if (this.ignorelist && Utils.isMatched(uri.fsPath, this.ignorelist)) {
       Logger.log(`File Processor - Ignoring Task ${uri}`, LogLevel.Info);
     } else {
       Logger.log(`File Processor - Creating Task ${uri}`, LogLevel.Info);
@@ -75,7 +80,7 @@ export class ItemProcessor {
         .filter((processor) => processor.canProcess(uri))
         .forEach((processor) => {
           this.addTask(() =>
-            processor.ProcessContent(uri, fs.readFileSync(uri.fsPath, "utf8"))
+            processor.ProcessContent(uri, fs.readFileSync(uri.fsPath, "utf8")),
           );
         });
     }
