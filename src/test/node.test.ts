@@ -40,6 +40,18 @@ suite("Extension - Node Test Suite", () => {
     assert.equal(nodeA.equals(nodeB), true);
   });
 
+  test("Node equality check returns false for different ids", () => {
+    const nodeA = new Node("5", "Node A");
+    const nodeB = new Node("6", "Node B");
+    assert.equal(nodeA.equals(nodeB), false);
+  });
+
+  test("Node equality check returns false for same name different id", () => {
+    const nodeA = new Node("5", "Same Name");
+    const nodeB = new Node("6", "Same Name");
+    assert.equal(nodeA.equals(nodeB), false);
+  });
+
   test("Node properties can be updated", () => {
     const node = new Node("8", "Updatable Node", "file");
 
