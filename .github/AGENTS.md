@@ -79,6 +79,7 @@ npm run test        # Mocha via @vscode/test-cli (compiles + lints first)
 - Local packaging: `npm run package` / publish tasks in `.vscode/tasks.json`
 
 ### Workflow Rules
+- **All work happens on `master`** — do not create feature branches; commit directly to the main branch
 - GitHub Actions workflows live in `.github/workflows/` — YAML format
 - Tests **must** pass on all three OS matrices before merge
 - Linux CI uses `xvfb-run -a` for headless VS Code test execution
