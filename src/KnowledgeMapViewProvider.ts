@@ -141,7 +141,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             "AddEdge",
             item.parent.fsPath,
             item.uri.fsPath,
-            "contain",
+            "contains",
           );
         }
       }
