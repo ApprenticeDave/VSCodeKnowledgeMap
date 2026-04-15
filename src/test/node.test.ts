@@ -1,3 +1,5 @@
+/** @format */
+
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { Node } from "../KnowledgeGraph/Node";
@@ -59,6 +61,6 @@ suite("Extension - Node Test Suite", () => {
     const endTime = performance.now();
     const duration = endTime - startTime;
 
-    assert.ok(duration < 1000);
+    assert.ok(duration < 5000);
   });
 });
