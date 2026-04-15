@@ -46,6 +46,8 @@ suite("MarkdownProcessor Test Suite", () => {
     await processor.ProcessContent(fileUri, content);
 
     assert.strictEqual(addedNodes.length, 1);
+    assert.strictEqual(addedNodes[0].uri, "https://google.com");
+    assert.strictEqual(addedNodes[0].name, "Google");
     assert.strictEqual(addedNodes[0].type, "link");
   });
 
@@ -68,6 +70,7 @@ suite("MarkdownProcessor Test Suite", () => {
 
     assert.strictEqual(addedEdges.length, 1);
     assert.strictEqual(addedEdges[0].sourceUri, fileUri.fsPath);
+    assert.strictEqual(addedEdges[0].targetUri, "https://google.com");
     assert.strictEqual(addedEdges[0].relationship, "reference");
   });
 
