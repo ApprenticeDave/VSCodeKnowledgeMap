@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "event": "edit_file",
+        "command": "npx eslint --fix ${filePath}",
+        "windows": "npx eslint --fix ${filePath}",
+        "timeout": 15
+      }
+    ]
+  }
+}
