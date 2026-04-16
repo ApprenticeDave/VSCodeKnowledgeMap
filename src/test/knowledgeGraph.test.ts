@@ -86,6 +86,21 @@ suite("KnowledgeGraph Test Suite", () => {
     assert.strictEqual(graph.getNodes().length, 0);
   });
 
+  test("removeNode removes associated contains edges", () => {
+    const parent = new Node("parent-1", "Parent", "folder");
+    const child = new Node("child-1", "Child", "file");
+    graph.addNode(parent);
+    graph.addNode(child);
+
+    const edge = new Edge("edge-1", parent, child, "contains");
+    graph.addEdge(edge);
+    assert.strictEqual(graph.getEdges().length, 1);
+
+    graph.removeNode(parent);
+    assert.strictEqual(graph.getNodes().length, 1);
+    assert.strictEqual(graph.getEdges().length, 0);
+  });
+
   test("addEdge adds an edge between existing nodes", () => {
     const source = new Node("src-1", "Source", "file");
     const target = new Node("tgt-1", "Target", "file");
