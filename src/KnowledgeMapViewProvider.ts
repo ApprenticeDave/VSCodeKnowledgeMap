@@ -9,6 +9,11 @@ import { Node } from "./KnowledgeGraph/Node";
 import { Edge } from "./KnowledgeGraph/Edge";
 import * as path from "path";
 
+type WebviewMessage =
+  | { command: "log"; text: string }
+  | { command: "openNode"; filePath: string }
+  | { command: "WebViewLoaded" };
+
 export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "vscodeknowledgemap.knowledgeMapView";
   private eventMonitor: EventMonitor;
@@ -60,7 +65,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     );
 
     // Set up event listeners
-    this.webviewView.webview.onDidReceiveMessage(async (message) => {
+    this.webviewView.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       switch (message.command) {
         case "log":
           Logger.log(
@@ -69,6 +74,13 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
           );
           return;
         case "openNode":
+          if (typeof message.filePath !== "string" || message.filePath.length === 0) {
+            Logger.log(
+              `KnowledgeMap View Provider - Invalid filePath in openNode message`,
+              LogLevel.Warn,
+            );
+            return;
+          }
           Logger.log(
             `KnowledgeMap View Provider - WebGL Script - Open file in editor ${message.filePath}`,
             LogLevel.Info,
@@ -209,28 +221,57 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
   public async openNodeInEditor(nodePath: string) {
     try {
-      const fileUri = vscode.Uri.file(nodePath);
+      // Validate input type
+      if (typeof nodePath !== "string" || nodePath.length === 0) {
+        Logger.log(
+          `KnowledgeMap View Provider - Invalid nodePath: expected non-empty string`,
+          LogLevel.Warn,
+        );
+        return;
+      }
 
-      // Optional: Check if the file is within the workspace
+      // Reject paths containing null bytes or control characters
+      if (/[\x00-\x1f\x7f-\x9f\u2028\u2029]/.test(nodePath)) {
+        Logger.log(
+          `KnowledgeMap View Provider - Rejected path with control characters`,
+          LogLevel.Warn,
+        );
+        return;
+      }
+
+      // Handle external URLs with user confirmation
+      if (nodePath.startsWith("http://") || nodePath.startsWith("https://")) {
+        Logger.log(
+          `KnowledgeMap View Provider - Opening external link - ${nodePath}`,
+          LogLevel.Info,
+        );
+        const choice = await vscode.window.showInformationMessage(
+          `Open external link?\n${nodePath}`,
+          { modal: true },
+          "Open",
+        );
+        if (choice === "Open") {
+          await vscode.env.openExternal(vscode.Uri.parse(nodePath));
+        }
+        return;
+      }
+
+      // Normalize the path to resolve traversal sequences
+      const normalizedPath = path.resolve(nodePath);
+      const fileUri = vscode.Uri.file(normalizedPath);
+
+      // Check if the file is within the workspace
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
       if (!workspaceFolder) {
-        if (nodePath.startsWith("http")) {
-          Logger.log(
-            "KnowledgeMap View Provider - Opening external link - ${nodePath}",
-            LogLevel.Info,
-          );
-          vscode.env.openExternal(vscode.Uri.parse(nodePath));
-        } else {
-          Logger.log(
-            `KnowledgeMap View Provider - File is not within the workspace - ${nodePath}`,
-            LogLevel.Warn,
-          );
-          return;
-        }
-      } else {
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+        Logger.log(
+          `KnowledgeMap View Provider - File is not within the workspace - ${normalizedPath}`,
+          LogLevel.Warn,
+        );
+        return;
       }
+
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
     } catch (error) {
       Logger.log(
         `KnowledgeMap View Provider - Error opening file: ${error}`,
