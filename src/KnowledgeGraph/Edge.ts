@@ -32,8 +32,9 @@ export class Edge {
     } else {
       const obj = JSON.parse(idOrJson);
       this.id = obj.id;
-      this.source = obj.source;
-      this.target = obj.target;
+      this.source = new Node(obj.source.id, obj.source.name, obj.source.nodetype);
+      this.target = new Node(obj.target.id, obj.target.name, obj.target.nodetype);
+      this.relationship = obj.relationship;
     }
   }
 
