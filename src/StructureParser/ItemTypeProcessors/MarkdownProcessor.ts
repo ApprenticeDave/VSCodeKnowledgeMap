@@ -26,9 +26,9 @@ export class MarkdownProcessor implements iLinker {
     const links = this.extractLinks(content);
 
     Logger.log(`Found links: ${JSON.stringify(links)}`, LogLevel.Info);
-    (await links).forEach((key, value) => {
-      this.eventMonitor.emit("AddNode", key, value, "link");
-      this.eventMonitor.emit("AddEdge", fileURI.fsPath, key, "reference");
+    (await links).forEach((name, url) => {
+      this.eventMonitor.emit("AddNode", url, name, "link");
+      this.eventMonitor.emit("AddEdge", fileURI.fsPath, url, "reference");
     });
   }
 
@@ -38,8 +38,8 @@ export class MarkdownProcessor implements iLinker {
     const matches = content.matchAll(linkRegex);
 
     for (const match of matches) {
-      const linkURL = match[1];
-      const linkName = match[2];
+      const linkName = match[1];
+      const linkURL = match[2];
       links.set(linkURL, linkName);
     }
 
