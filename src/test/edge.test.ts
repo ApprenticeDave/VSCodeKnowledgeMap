@@ -46,12 +46,31 @@ suite("Edge Test Suite", () => {
       id: "edge-json",
       source: { id: "src-1", name: "Source" },
       target: { id: "tgt-1", name: "Target" },
+      relationship: "references",
     });
     const edge = new Edge(json);
 
     assert.strictEqual(edge.id, "edge-json");
-    assert.deepStrictEqual(edge.source, { id: "src-1", name: "Source" });
-    assert.deepStrictEqual(edge.target, { id: "tgt-1", name: "Target" });
+    assert.ok(edge.source instanceof Node);
+    assert.strictEqual(edge.source.id, "src-1");
+    assert.strictEqual(edge.source.name, "Source");
+    assert.ok(edge.target instanceof Node);
+    assert.strictEqual(edge.target.id, "tgt-1");
+    assert.strictEqual(edge.target.name, "Target");
+    assert.strictEqual(edge.relationship, "references");
+  });
+
+  test("Edge constructor from JSON source and target have Node methods", () => {
+    const json = JSON.stringify({
+      id: "edge-json",
+      source: { id: "src-1", name: "Source" },
+      target: { id: "tgt-1", name: "Target" },
+    });
+    const edge = new Edge(json);
+
+    assert.ok(typeof edge.source.equals === "function");
+    assert.ok(typeof edge.target.equals === "function");
+    assert.ok(edge.source.equals(new Node("src-1", "Source")));
   });
 
   test("Edge toJson returns valid JSON string", () => {
