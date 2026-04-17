@@ -103,20 +103,21 @@ export class KnowledgeGraph {
     if (node) {
       this.nodes.delete(node.id);
       this.eventMonitor.notifyChange("KnowledgeGraphNodeRemoved", node);
-      this.edges.forEach((edge) => {
-        if (edge.source === node || edge.target === node) {
-          Logger.log(
-            `Knowledge Graph - Removing node Edges: ${edge}`,
-            LogLevel.Info
-          );
-          this.removeEdge(edge);
-          Logger.log(
-            `Knowledge Graph - Removing sub dir nodes: ${edge.source}`,
-            LogLevel.Info
-          );
-          if (edge.relationship === "contains" && edge.source !== node) {
-            this.removeNode(edge.source);
-          }
+      const toRemove = [...this.edges].filter(
+        (edge) => edge.source === node || edge.target === node
+      );
+      toRemove.forEach((edge) => {
+        Logger.log(
+          `Knowledge Graph - Removing node Edges: ${edge}`,
+          LogLevel.Info
+        );
+        this.removeEdge(edge);
+        Logger.log(
+          `Knowledge Graph - Removing sub dir nodes: ${edge.source}`,
+          LogLevel.Info
+        );
+        if (edge.relationship === "contains" && edge.source !== node) {
+          this.removeNode(edge.source);
         }
       });
     }

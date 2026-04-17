@@ -56,6 +56,9 @@ window.addEventListener("message", (event) => {
     case "removeEdge":
       removeEdge(message.node);
       break;
+    case "clearView":
+      clearGraph();
+      break;
     case "setBackgroundColor":
       document.body.style.backgroundColor = message.color;
       break;
@@ -290,7 +293,7 @@ const Graph = ForceGraph3D({
   .backgroundColor(backgroundcolour)
   .nodeAutoColorBy("group")
   .nodeLabel("name")
-  .nodeResolution([12])
+  .nodeResolution(12)
   .nodeThreeObjectExtend(true)
   .nodeThreeObject((node) => {
     const nodeEl = document.createElement("div");
@@ -318,7 +321,7 @@ const Graph = ForceGraph3D({
     const totaledges = initData.links.filter(
       (l) => l.source.id === link.source.id
     ).length;
-    const index = initData.links.indexOf((l) => l.source.id === link.source.id);
+    const index = initData.links.findIndex((l) => l.source.id === link.source.id);
     return calculateRotation(index, totaledges);
   })
   .linkDirectionalParticleWidth((link) => {
