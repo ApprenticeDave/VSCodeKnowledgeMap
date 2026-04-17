@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import { Logger, LogLevel } from "./Utils/Logger";
 import { KnowledgeGraph } from "./KnowledgeGraph/KnowledgeGraph";
 import { EventMonitor } from "./Utils/EventMonitor";
+import { GraphEvents } from "./Utils/GraphEvents";
 import { ItemProcessor } from "./StructureParser/ItemProcessor";
 import { Node } from "./KnowledgeGraph/Node";
 import { Edge } from "./KnowledgeGraph/Edge";
@@ -147,14 +148,14 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
               });
             }
             this.eventMonitor.emit(
-              "AddNode",
+              GraphEvents.AddNode,
               item.uri.fsPath,
               path.basename(item.uri.fsPath),
               "folder",
             );
           } else if (stat.type === vscode.FileType.File) {
             this.eventMonitor.emit(
-              "AddNode",
+              GraphEvents.AddNode,
               item.uri.fsPath,
               path.basename(item.uri.fsPath),
               "file",
@@ -165,7 +166,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
           if (item.parent) {
             this.eventMonitor.emit(
-              "AddEdge",
+              GraphEvents.AddEdge,
               item.parent.fsPath,
               item.uri.fsPath,
               "contains",
@@ -186,7 +187,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       `KnowledgeMap View Provider - Init Events - Listen for Knowledgegraph Updates`,
       LogLevel.Info,
     );
-    this.eventMonitor.on("KnowledgeGraphNodeAdded", (node) => {
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphNodeAdded, (node) => {
       if (this.webviewView) {
         Logger.log(
           `KnowledgeMap View Provider - Adding Node to WebGL Panel: ${node}`,
@@ -204,7 +205,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    this.eventMonitor.on("KnowledgeGraphNodeRemoved", (node) => {
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphNodeRemoved, (node) => {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
           command: "removeNode",
@@ -213,7 +214,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    this.eventMonitor.on("KnowledgeGraphEdgeAdded", (edge) => {
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphEdgeAdded, (edge) => {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
           command: "addEdge",
@@ -222,7 +223,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    this.eventMonitor.on("KnowledgeGraphEdgeRemoved", (edge) => {
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphEdgeRemoved, (edge) => {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
           command: "removeEdge",
@@ -231,7 +232,16 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    this.eventMonitor.on("ClearView", (node) => {
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphEdgeUpdated, (edge) => {
+      if (this.webviewView) {
+        this.webviewView.webview.postMessage({
+          command: "updateEdge",
+          node: edge,
+        });
+      }
+    });
+
+    this.eventMonitor.on(GraphEvents.KnowledgeGraphCleared, () => {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
           command: "clearView",

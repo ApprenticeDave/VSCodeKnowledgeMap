@@ -1,6 +1,7 @@
 import { iLinker } from "../iLinker";
 import { Logger, LogLevel } from "../../Utils/Logger";
 import { EventMonitor } from "../../Utils/EventMonitor";
+import { GraphEvents } from "../../Utils/GraphEvents";
 import { Utils } from "../../Utils/Utils";
 import * as vscode from "vscode";
 
@@ -27,8 +28,8 @@ export class MarkdownProcessor implements iLinker {
 
     Logger.log(`Found links: ${JSON.stringify(links)}`, LogLevel.Info);
     links.forEach((name, url) => {
-      this.eventMonitor.emit("AddNode", url, name, "link");
-      this.eventMonitor.emit("AddEdge", fileURI.fsPath, url, "reference");
+      this.eventMonitor.emit(GraphEvents.AddNode, url, name, "link");
+      this.eventMonitor.emit(GraphEvents.AddEdge, fileURI.fsPath, url, "reference");
     });
   }
 
