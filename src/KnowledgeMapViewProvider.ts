@@ -137,38 +137,45 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     while (items.length > 0) {
       const item = items.shift();
       if (item) {
-        const stat = await vscode.workspace.fs.stat(item.uri);
-        if (stat.type === vscode.FileType.Directory) {
-          const files = await vscode.workspace.fs.readDirectory(item.uri);
-          for (const file of files) {
-            items.push({
-              uri: vscode.Uri.joinPath(item.uri, file[0]),
-              parent: item.uri,
-            });
+        try {
+          const stat = await vscode.workspace.fs.stat(item.uri);
+          if (stat.type === vscode.FileType.Directory) {
+            const files = await vscode.workspace.fs.readDirectory(item.uri);
+            for (const file of files) {
+              items.push({
+                uri: vscode.Uri.joinPath(item.uri, file[0]),
+                parent: item.uri,
+              });
+            }
+            this.eventMonitor.emit(
+              "AddNode",
+              item.uri.fsPath,
+              path.basename(item.uri.fsPath),
+              "folder",
+            );
+          } else if (stat.type === vscode.FileType.File) {
+            this.eventMonitor.emit(
+              "AddNode",
+              item.uri.fsPath,
+              path.basename(item.uri.fsPath),
+              "file",
+            );
+
+            this.itemProcessor?.createUriTask(item.uri);
           }
-          this.eventMonitor.emit(
-            "AddNode",
-            item.uri.fsPath,
-            path.basename(item.uri.fsPath),
-            "folder",
-          );
-        } else if (stat.type === vscode.FileType.File) {
-          this.eventMonitor.emit(
-            "AddNode",
-            item.uri.fsPath,
-            path.basename(item.uri.fsPath),
-            "file",
-          );
 
-          this.itemProcessor?.createUriTask(item.uri);
-        }
-
-        if (item.parent) {
-          this.eventMonitor.emit(
-            "AddEdge",
-            item.parent.fsPath,
-            item.uri.fsPath,
-            "contains",
+          if (item.parent) {
+            this.eventMonitor.emit(
+              "AddEdge",
+              item.parent.fsPath,
+              item.uri.fsPath,
+              "contains",
+            );
+          }
+        } catch (error) {
+          Logger.log(
+            `KnowledgeMap View Provider - Skipping ${item.uri.fsPath}: ${error}`,
+            LogLevel.Warn,
           );
         }
       }
