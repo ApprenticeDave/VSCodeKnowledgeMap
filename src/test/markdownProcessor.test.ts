@@ -17,7 +17,7 @@ suite("MarkdownProcessor Test Suite", () => {
   });
 
   test("MarkdownProcessor has correct processor name", () => {
-    assert.strictEqual(processor.ProcesscorName, "MarkdownProcessor");
+    assert.strictEqual(processor.processorName, "MarkdownProcessor");
   });
 
   test("canProcess returns true for markdown files", () => {
@@ -43,7 +43,7 @@ suite("MarkdownProcessor Test Suite", () => {
 
     const content = "[Google](https://google.com)";
     const fileUri = vscode.Uri.file("/path/to/readme.md");
-    await processor.ProcessContent(fileUri, content);
+    await processor.processContent(fileUri, content);
 
     assert.strictEqual(addedNodes.length, 1);
     assert.strictEqual(addedNodes[0].uri, "https://google.com");
@@ -66,7 +66,7 @@ suite("MarkdownProcessor Test Suite", () => {
 
     const content = "[Google](https://google.com)";
     const fileUri = vscode.Uri.file("/path/to/readme.md");
-    await processor.ProcessContent(fileUri, content);
+    await processor.processContent(fileUri, content);
 
     assert.strictEqual(addedEdges.length, 1);
     assert.strictEqual(addedEdges[0].sourceUri, fileUri.fsPath);
@@ -83,7 +83,7 @@ suite("MarkdownProcessor Test Suite", () => {
     const content =
       "[Google](https://google.com) and [GitHub](https://github.com)";
     const fileUri = vscode.Uri.file("/path/to/readme.md");
-    await processor.ProcessContent(fileUri, content);
+    await processor.processContent(fileUri, content);
 
     assert.strictEqual(addedNodes.length, 2);
   });
@@ -96,7 +96,7 @@ suite("MarkdownProcessor Test Suite", () => {
 
     const content = "This is plain text with no links.";
     const fileUri = vscode.Uri.file("/path/to/readme.md");
-    await processor.ProcessContent(fileUri, content);
+    await processor.processContent(fileUri, content);
 
     assert.strictEqual(addedNodes.length, 0);
   });
@@ -108,7 +108,7 @@ suite("MarkdownProcessor Test Suite", () => {
     });
 
     const fileUri = vscode.Uri.file("/path/to/readme.md");
-    await processor.ProcessContent(fileUri, "");
+    await processor.processContent(fileUri, "");
 
     assert.strictEqual(addedNodes.length, 0);
   });

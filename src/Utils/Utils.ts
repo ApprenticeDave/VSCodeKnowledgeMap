@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as micromatch from "micromatch";
 
 export class Utils {
   public static IsJson(input: any): boolean {
@@ -17,7 +18,6 @@ export class Utils {
     input: string,
     patterns: string[] | undefined
   ): boolean {
-    const micromatch = require("micromatch");
-    return micromatch.isMatch(input, patterns);
+    return micromatch.isMatch(input, patterns ?? []);
   }
 }

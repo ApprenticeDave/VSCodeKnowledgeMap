@@ -2,7 +2,6 @@ import { EventMonitor } from "../Utils/EventMonitor";
 import { Node } from "./Node";
 import { Edge } from "./Edge";
 import { Logger, LogLevel } from "../Utils/Logger";
-import { off } from "process";
 
 export class KnowledgeGraph {
   private eventMonitor: EventMonitor;
@@ -91,8 +90,6 @@ export class KnowledgeGraph {
       );
     }
   }
-
-  public updateNode(node: Node): void {}
 
   public removeNode(nodeToRemove: Node): void {
     Logger.log(

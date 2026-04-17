@@ -103,6 +103,7 @@
     "publish": "npx vsce publish"
   },
   "devDependencies": {
+    "@types/micromatch": "^4.0.10",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "@types/vscode": "^1.95.0",
@@ -111,17 +112,12 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.24.0",
-    "typescript": "^5.8.3",
-    "vsce": "^2.15.0"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@vscode/l10n": "^0.0.18",
     "@vscode/vsce": "^3.3.2",
-    "grunt-cli": "^1.5.0",
-    "micromatch": "^4.0.8",
-    "remark": "^15.0.1",
-    "remark-parse": "^11.0.0",
-    "unist-util-visit": "^5.0.0"
+    "micromatch": "^4.0.8"
   },
   "bugs": {
     "url": "https://github.com/ApprenticeDave/VSCodeKnowledgeMap/issues"

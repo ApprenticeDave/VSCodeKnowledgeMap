@@ -21,7 +21,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   private webviewView?: vscode.WebviewView;
   private forcegraphSha: string =
     "sha384-EOtdclDeZjD2OIuHLRVD69URQBcPkwvQOXng4RCP025pd0wHn410ghSudxpCbVBJ";
-  private forgraphURI: string =
+  private forceGraphUri: string =
     "https://unpkg.com/3d-force-graph@1.69.9/dist/3d-force-graph.js";
 
   // Pinned CDN URLs and SRI hashes for Three.js ecosystem
@@ -44,7 +44,6 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
     rootUri: vscode.Uri[],
   ) {
     this.eventMonitor = new EventMonitor();
-    this.extensionUri = extensionUri;
     this.rootUris = rootUri;
   }
 
@@ -363,7 +362,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
                   }
                 }
                 </script>
-                <script nonce='${nonce}' integrity='${this.forcegraphSha}' crossorigin='anonymous' src="${this.forgraphURI}"></script>
+                <script nonce='${nonce}' integrity='${this.forcegraphSha}' crossorigin='anonymous' src="${this.forceGraphUri}"></script>
             </head>
             <body>
                 <div id="glCanvas"></div>
