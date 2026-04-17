@@ -5,14 +5,12 @@ import { Logger, LogLevel } from "./Utils/Logger";
 
 
 // Global variables
-let extensionContext: vscode.ExtensionContext;
 let knowledgeMapProvider: KnowledgeMapViewProvider;
 
 // This method is called when your extension is activated
 export async function activate(context: vscode.ExtensionContext) {
   Logger.log("Extension - Activating", LogLevel.Info);
   let rootUris: vscode.Uri[];
-  extensionContext = context;
 
   if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
     Logger.log("No workspace or folder is currently open", LogLevel.Warn);

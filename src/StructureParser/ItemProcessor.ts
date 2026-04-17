@@ -89,7 +89,7 @@ export class ItemProcessor {
           this.addTask(async () => {
             const fileContent = await vscode.workspace.fs.readFile(uri);
             const text = new TextDecoder().decode(fileContent);
-            await processor.ProcessContent(uri, text);
+            await processor.processContent(uri, text);
           });
         });
     }

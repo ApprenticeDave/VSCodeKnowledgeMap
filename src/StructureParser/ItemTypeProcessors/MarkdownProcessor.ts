@@ -6,7 +6,7 @@ import * as vscode from "vscode";
 
 export class MarkdownProcessor implements iLinker {
   private eventMonitor: EventMonitor;
-  public ProcesscorName: string = "MarkdownProcessor";
+  public processorName: string = "MarkdownProcessor";
   private processorPattern = ["**/*.md"];
   constructor(eventMonitor: EventMonitor) {
     this.eventMonitor = eventMonitor;
@@ -18,7 +18,7 @@ export class MarkdownProcessor implements iLinker {
     return isMatched;
   }
 
-  public async ProcessContent(
+  public async processContent(
     fileURI: vscode.Uri,
     content: string
   ): Promise<void> {
@@ -26,13 +26,13 @@ export class MarkdownProcessor implements iLinker {
     const links = this.extractLinks(content);
 
     Logger.log(`Found links: ${JSON.stringify(links)}`, LogLevel.Info);
-    (await links).forEach((name, url) => {
+    links.forEach((name, url) => {
       this.eventMonitor.emit("AddNode", url, name, "link");
       this.eventMonitor.emit("AddEdge", fileURI.fsPath, url, "reference");
     });
   }
 
-  private async extractLinks(content: string): Promise<Map<string, string>> {
+  private extractLinks(content: string): Map<string, string> {
     const links = new Map<string, string>();
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const matches = content.matchAll(linkRegex);

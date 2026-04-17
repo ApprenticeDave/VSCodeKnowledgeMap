@@ -17,7 +17,7 @@ if (typeof acquireVsCodeApi !== "undefined") {
   window.addEventListener(
     "resize",
     function (event) {
-      var width = window.innerWidth,
+      const width = window.innerWidth,
         height = window.innerHeight;
       Graph.width(width).height(height);
     },
@@ -151,12 +151,6 @@ function updateEdge(edge) {
 function removeNode(node) {
   const { nodes, links } = Graph.graphData();
   console.info("Knowledge View - Panel Script - Removing node", node);
-
-  const graphnode = {
-    id: node.id,
-    name: node.name,
-    group: node.nodetype,
-  };
 
   const index = nodes.findIndex((n) => n.id === node.id);
   if (index > -1) {
