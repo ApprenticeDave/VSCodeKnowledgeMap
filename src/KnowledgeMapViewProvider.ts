@@ -282,7 +282,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
   public OpenKnowledgeMapAt(uri: vscode.Uri) {
     Logger.log(
-      "KnowledgeMap View Provider - Opening Knowledge Map at: ${uri.fsPath}",
+      `KnowledgeMap View Provider - Opening Knowledge Map at: ${uri.fsPath}`,
       LogLevel.Info,
     );
     this.itemProcessor?.stop();
