@@ -1,6 +1,5 @@
 /** @format */
 
-import * as fs from "fs";
 import * as vscode from "vscode";
 import { MarkdownProcessor } from "./ItemTypeProcessors/MarkdownProcessor";
 import { iLinker } from "./iLinker";
@@ -87,9 +86,11 @@ export class ItemProcessor {
       this.processors
         .filter((processor) => processor.canProcess(uri))
         .forEach((processor) => {
-          this.addTask(() =>
-            processor.ProcessContent(uri, fs.readFileSync(uri.fsPath, "utf8")),
-          );
+          this.addTask(async () => {
+            const fileContent = await vscode.workspace.fs.readFile(uri);
+            const text = new TextDecoder().decode(fileContent);
+            await processor.ProcessContent(uri, text);
+          });
         });
     }
   }
