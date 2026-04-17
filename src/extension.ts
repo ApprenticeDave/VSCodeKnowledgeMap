@@ -37,11 +37,13 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(provider);
   context.subscriptions.push(openKXToFileCommand);
 
-  vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-    // Update the rootUris and the knowledgeMapProvider if needed
-    rootUris = vscode.workspace.workspaceFolders?.map((folder) => folder.uri) || [];
-    knowledgeMapProvider.updateRootUris(rootUris);
-  });
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders((event) => {
+      // Update the rootUris and the knowledgeMapProvider if needed
+      rootUris = vscode.workspace.workspaceFolders?.map((folder) => folder.uri) || [];
+      knowledgeMapProvider.updateRootUris(rootUris);
+    })
+  );
 }
 
 // This method is called when your extension is deactivated

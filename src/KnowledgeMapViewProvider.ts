@@ -38,6 +38,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
 
   private rootUris: vscode.Uri[];
   private itemProcessor?: ItemProcessor;
+  private _viewDisposables: vscode.Disposable[] = [];
   constructor(
     private readonly extensionUri: vscode.Uri,
     rootUri: vscode.Uri[],
@@ -54,6 +55,10 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
   ) {
     this.webviewView = webviewView;
 
+    // Dispose any disposables from a previous webview session
+    this._viewDisposables.forEach((d) => d.dispose());
+    this._viewDisposables = [];
+
     this.webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [vscode.Uri.joinPath(this.extensionUri, "media")],
@@ -64,8 +69,8 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       this.extensionUri,
     );
 
-    // Set up event listeners
-    this.webviewView.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
+    // Set up event listeners; track the returned disposable for cleanup
+    this._viewDisposables.push(this.webviewView.webview.onDidReceiveMessage(async (message: WebviewMessage) => {
       switch (message.command) {
         case "log":
           Logger.log(
@@ -93,6 +98,9 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
             LogLevel.Info,
           );
 
+          // Remove all previous EventMonitor listeners to prevent accumulation
+          // across hide/show cycles before re-registering.
+          this.eventMonitor.removeAllListeners();
           this.initEvents();
           this.knowledgeGraph = new KnowledgeGraph(this.eventMonitor);
           this.itemProcessor = new ItemProcessor(this.eventMonitor);
@@ -100,7 +108,14 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
           await this.itemProcessor.start();
           break;
       }
-    }, undefined);
+    }));
+
+    // Clean up all view-scoped disposables when the webview is permanently disposed;
+    // track this disposable too so it is cleaned up on re-show.
+    this._viewDisposables.push(webviewView.onDidDispose(() => {
+      this._viewDisposables.forEach((d) => d.dispose());
+      this._viewDisposables = [];
+    }));
   }
 
   public async updateRootUris(rootUri: vscode.Uri[]) {
