@@ -236,7 +236,7 @@ export class KnowledgeMapViewProvider implements vscode.WebviewViewProvider {
       if (this.webviewView) {
         this.webviewView.webview.postMessage({
           command: "updateEdge",
-          node: edge,
+          edge: edge,
         });
       }
     });
