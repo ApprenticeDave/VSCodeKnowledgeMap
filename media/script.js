@@ -17,8 +17,8 @@ if (typeof acquireVsCodeApi !== "undefined") {
   window.addEventListener(
     "resize",
     function (event) {
-      const width = window.innerWidth,
-        height = window.innerHeight;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
       Graph.width(width).height(height);
     },
     true
