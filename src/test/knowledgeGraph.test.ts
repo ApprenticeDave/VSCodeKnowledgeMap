@@ -6,6 +6,7 @@ import { KnowledgeGraph } from "../KnowledgeGraph/KnowledgeGraph";
 import { Node } from "../KnowledgeGraph/Node";
 import { Edge } from "../KnowledgeGraph/Edge";
 import { EventMonitor } from "../Utils/EventMonitor";
+import { GraphEvents } from "../Utils/GraphEvents";
 
 suite("KnowledgeGraph Test Suite", () => {
   vscode.window.showInformationMessage("Start all KnowledgeGraph tests.");
@@ -45,7 +46,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("addNode emits KnowledgeGraphNodeAdded event", () => {
     let emittedNode: any = null;
-    eventMonitor.on("KnowledgeGraphNodeAdded", (node: any) => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphNodeAdded, (node: any) => {
       emittedNode = node;
     });
 
@@ -67,7 +68,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("removeNode emits KnowledgeGraphNodeRemoved event", () => {
     let emittedNode: any = null;
-    eventMonitor.on("KnowledgeGraphNodeRemoved", (node: any) => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphNodeRemoved, (node: any) => {
       emittedNode = node;
     });
 
@@ -138,7 +139,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("addEdge emits KnowledgeGraphEdgeAdded event", () => {
     let emittedEdge: any = null;
-    eventMonitor.on("KnowledgeGraphEdgeAdded", (edge: any) => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphEdgeAdded, (edge: any) => {
       emittedEdge = edge;
     });
 
@@ -170,7 +171,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("removeEdge emits KnowledgeGraphEdgeRemoved event", () => {
     let emittedEdge: any = null;
-    eventMonitor.on("KnowledgeGraphEdgeRemoved", (edge: any) => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphEdgeRemoved, (edge: any) => {
       emittedEdge = edge;
     });
 
@@ -206,7 +207,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("updateEdge emits KnowledgeGraphEdgeUpdated event", () => {
     let emittedEdge: any = null;
-    eventMonitor.on("KnowledgeGraphEdgeUpdated", (edge: any) => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphEdgeUpdated, (edge: any) => {
       emittedEdge = edge;
     });
 
@@ -242,7 +243,7 @@ suite("KnowledgeGraph Test Suite", () => {
 
   test("clearGraph emits KnowledgeGraphCleared event", () => {
     let cleared = false;
-    eventMonitor.on("KnowledgeGraphCleared", () => {
+    eventMonitor.on(GraphEvents.KnowledgeGraphCleared, () => {
       cleared = true;
     });
 
@@ -285,7 +286,7 @@ suite("KnowledgeGraph Test Suite", () => {
   });
 
   test("AddNode event integration adds node to graph", () => {
-    eventMonitor.emit("AddNode", "uri-1", "Event Node", "file");
+    eventMonitor.emit(GraphEvents.AddNode, "uri-1", "Event Node", "file");
 
     const nodes = graph.getNodes();
     assert.strictEqual(nodes.length, 1);
@@ -294,17 +295,17 @@ suite("KnowledgeGraph Test Suite", () => {
   });
 
   test("DeleteNode event integration removes node from graph", () => {
-    eventMonitor.emit("AddNode", "uri-1", "Node To Delete", "file");
+    eventMonitor.emit(GraphEvents.AddNode, "uri-1", "Node To Delete", "file");
     assert.strictEqual(graph.getNodes().length, 1);
 
-    eventMonitor.emit("DeleteNode", "uri-1");
+    eventMonitor.emit(GraphEvents.DeleteNode, "uri-1");
     assert.strictEqual(graph.getNodes().length, 0);
   });
 
   test("AddEdge event integration adds edge between nodes", () => {
-    eventMonitor.emit("AddNode", "src-1", "Source", "file");
-    eventMonitor.emit("AddNode", "tgt-1", "Target", "file");
-    eventMonitor.emit("AddEdge", "src-1", "tgt-1", "reference");
+    eventMonitor.emit(GraphEvents.AddNode, "src-1", "Source", "file");
+    eventMonitor.emit(GraphEvents.AddNode, "tgt-1", "Target", "file");
+    eventMonitor.emit(GraphEvents.AddEdge, "src-1", "tgt-1", "reference");
 
     const edges = graph.getEdges();
     assert.strictEqual(edges.length, 1);
@@ -312,8 +313,8 @@ suite("KnowledgeGraph Test Suite", () => {
   });
 
   test("AddEdge event does not add edge when source node missing", () => {
-    eventMonitor.emit("AddNode", "tgt-1", "Target", "file");
-    eventMonitor.emit("AddEdge", "src-1", "tgt-1", "reference");
+    eventMonitor.emit(GraphEvents.AddNode, "tgt-1", "Target", "file");
+    eventMonitor.emit(GraphEvents.AddEdge, "src-1", "tgt-1", "reference");
 
     assert.strictEqual(graph.getEdges().length, 0);
   });
@@ -328,7 +329,7 @@ suite("KnowledgeGraph Test Suite", () => {
     graph.addEdge(edge);
     assert.strictEqual(graph.getEdges().length, 1);
 
-    eventMonitor.emit("RemoveEdge", edge);
+    eventMonitor.emit(GraphEvents.RemoveEdge, edge);
     assert.strictEqual(graph.getEdges().length, 0);
   });
 

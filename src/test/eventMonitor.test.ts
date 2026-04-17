@@ -3,6 +3,7 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
 import { EventMonitor } from "../Utils/EventMonitor";
+import { GraphEvents } from "../Utils/GraphEvents";
 
 suite("EventMonitor Test Suite", () => {
   vscode.window.showInformationMessage("Start all EventMonitor tests.");
@@ -16,11 +17,11 @@ suite("EventMonitor Test Suite", () => {
     const monitor = new EventMonitor();
     let receivedData: any = null;
 
-    monitor.on("TestEvent", (data: any) => {
+    monitor.on(GraphEvents.AddNode, (data: any) => {
       receivedData = data;
     });
 
-    monitor.notifyChange("TestEvent", { key: "value" });
+    monitor.notifyChange(GraphEvents.AddNode, { key: "value" });
 
     assert.deepStrictEqual(receivedData, { key: "value" });
   });
@@ -30,12 +31,12 @@ suite("EventMonitor Test Suite", () => {
     let called = false;
     let receivedData: any = "not-null";
 
-    monitor.on("NullEvent", (data: any) => {
+    monitor.on(GraphEvents.DeleteNode, (data: any) => {
       called = true;
       receivedData = data;
     });
 
-    monitor.notifyChange("NullEvent", null);
+    monitor.notifyChange(GraphEvents.DeleteNode, null);
 
     assert.strictEqual(called, true);
     assert.strictEqual(receivedData, null);
@@ -45,13 +46,13 @@ suite("EventMonitor Test Suite", () => {
     const monitor = new EventMonitor();
     let callCount = 0;
 
-    monitor.on("RepeatEvent", () => {
+    monitor.on(GraphEvents.AddEdge, () => {
       callCount++;
     });
 
-    monitor.notifyChange("RepeatEvent", null);
-    monitor.notifyChange("RepeatEvent", null);
-    monitor.notifyChange("RepeatEvent", null);
+    monitor.notifyChange(GraphEvents.AddEdge, null);
+    monitor.notifyChange(GraphEvents.AddEdge, null);
+    monitor.notifyChange(GraphEvents.AddEdge, null);
 
     assert.strictEqual(callCount, 3);
   });
@@ -61,15 +62,15 @@ suite("EventMonitor Test Suite", () => {
     let listener1Called = false;
     let listener2Called = false;
 
-    monitor.on("MultiEvent", () => {
+    monitor.on(GraphEvents.KnowledgeGraphNodeAdded, () => {
       listener1Called = true;
     });
 
-    monitor.on("MultiEvent", () => {
+    monitor.on(GraphEvents.KnowledgeGraphNodeAdded, () => {
       listener2Called = true;
     });
 
-    monitor.notifyChange("MultiEvent", null);
+    monitor.notifyChange(GraphEvents.KnowledgeGraphNodeAdded, null);
 
     assert.strictEqual(listener1Called, true);
     assert.strictEqual(listener2Called, true);
@@ -79,11 +80,11 @@ suite("EventMonitor Test Suite", () => {
     const monitor = new EventMonitor();
     let called = false;
 
-    monitor.on("EventA", () => {
+    monitor.on(GraphEvents.AddEdge, () => {
       called = true;
     });
 
-    monitor.notifyChange("EventB", null);
+    monitor.notifyChange(GraphEvents.RemoveEdge, null);
 
     assert.strictEqual(called, false);
   });

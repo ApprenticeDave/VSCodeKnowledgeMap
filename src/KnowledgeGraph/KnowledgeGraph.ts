@@ -2,6 +2,7 @@ import { EventMonitor } from "../Utils/EventMonitor";
 import { Node } from "./Node";
 import { Edge } from "./Edge";
 import { Logger, LogLevel } from "../Utils/Logger";
+import { GraphEvents } from "../Utils/GraphEvents";
 
 export class KnowledgeGraph {
   private eventMonitor: EventMonitor;
@@ -22,13 +23,13 @@ export class KnowledgeGraph {
       LogLevel.Info
     );
     this.eventMonitor.on(
-      "AddNode",
+      GraphEvents.AddNode,
       (uri: string, name: string, type: string) => {
         this.addNode(new Node(uri, name, type));
       }
     );
 
-    this.eventMonitor.on("DeleteNode", (uri: string) => {
+    this.eventMonitor.on(GraphEvents.DeleteNode, (uri: string) => {
       const node = this.nodes.get(uri);
       if (node) {
         this.removeNode(node);
@@ -36,7 +37,7 @@ export class KnowledgeGraph {
     });
 
     this.eventMonitor.on(
-      "AddEdge",
+      GraphEvents.AddEdge,
       (
         sourceUri: string,
         targetUri: string,
@@ -69,7 +70,7 @@ export class KnowledgeGraph {
       }
     );
 
-    this.eventMonitor.on("RemoveEdge", (edge: Edge) => {
+    this.eventMonitor.on(GraphEvents.RemoveEdge, (edge: Edge) => {
       this.removeEdge(edge);
     });
   }
@@ -82,7 +83,7 @@ export class KnowledgeGraph {
         `Knowledge Graph - Notify Node Added - node: ${node.id}`,
         LogLevel.Info
       );
-      this.eventMonitor.notifyChange("KnowledgeGraphNodeAdded", node);
+      this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphNodeAdded, node);
     } else {
       Logger.log(
         `Knowledge Graph - Node already exists: ${node.id}`,
@@ -99,7 +100,7 @@ export class KnowledgeGraph {
     const node = this.nodes.get(nodeToRemove.id);
     if (node) {
       this.nodes.delete(node.id);
-      this.eventMonitor.notifyChange("KnowledgeGraphNodeRemoved", node);
+      this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphNodeRemoved, node);
       const toRemove = [...this.edges].filter(
         (edge) => edge.source === node || edge.target === node
       );
@@ -124,7 +125,7 @@ export class KnowledgeGraph {
     Logger.log(`Knowledge Graph - Add edge: ${edge.id}`, LogLevel.Info);
     if (this.nodes.has(edge.source.id) && this.nodes.has(edge.target.id)) {
       this.edges.add(edge);
-      this.eventMonitor.notifyChange("KnowledgeGraphEdgeAdded", edge);
+      this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphEdgeAdded, edge);
     } else {
       Logger.log(
         `Knowledge Graph - Both nodes must be added to the graph before adding an edge.`,
@@ -138,7 +139,7 @@ export class KnowledgeGraph {
     if (this.edges.has(edge)) {
       this.edges.delete(edge);
       this.edges.add(edge);
-      this.eventMonitor.notifyChange("KnowledgeGraphEdgeUpdated", edge);
+      this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphEdgeUpdated, edge);
     }
   }
 
@@ -146,7 +147,7 @@ export class KnowledgeGraph {
     Logger.log(`Knowledge Graph - Remove edge: ${edge.id}`, LogLevel.Info);
     if (this.edges.has(edge)) {
       this.edges.delete(edge);
-      this.eventMonitor.notifyChange("KnowledgeGraphEdgeRemoved", edge);
+      this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphEdgeRemoved, edge);
     }
   }
 
@@ -154,7 +155,7 @@ export class KnowledgeGraph {
     Logger.log(`Knowledge Graph - Clear graph`, LogLevel.Info);
     this.nodes.clear();
     this.edges.clear();
-    this.eventMonitor.notifyChange("KnowledgeGraphCleared", null);
+    this.eventMonitor.notifyChange(GraphEvents.KnowledgeGraphCleared, null);
   }
 
   public getNodes(): Node[] {
