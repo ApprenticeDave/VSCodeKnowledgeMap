@@ -93,13 +93,13 @@
   },
   "l10n": "./l10n",
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run package",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "watch": "node esbuild.mjs --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "package": "npx vsce package",
+    "package": "node esbuild.mjs --production",
     "publish": "npx vsce publish"
   },
   "devDependencies": {
@@ -111,6 +111,7 @@
     "@typescript-eslint/parser": "^8.29.1",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.28.0",
     "eslint": "^9.24.0",
     "typescript": "^5.8.3"
   },
