@@ -1,3 +1,5 @@
+/** @format */
+
 import { EventEmitter } from "events";
 import { Logger, LogLevel } from "../Utils/Logger";
 import { GraphEventName } from "../Utils/GraphEvents";
@@ -19,7 +21,9 @@ export class EventMonitor extends EventEmitter {
 
   // Typed wrapper for EventEmitter.removeAllListeners.
   public removeAllListeners(event?: GraphEventName): this {
-    return super.removeAllListeners(event);
+    return event !== undefined ?
+        super.removeAllListeners(event)
+      : super.removeAllListeners();
   }
 
   // Convenience method to emit a change event with a single data payload.
