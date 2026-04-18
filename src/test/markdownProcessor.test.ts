@@ -112,4 +112,49 @@ suite("MarkdownProcessor Test Suite", () => {
 
     assert.strictEqual(addedNodes.length, 0);
   });
+
+  test("ProcessContent deduplicates http and https variants of the same URL", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content =
+      "[Google HTTP](http://google.com) and [Google HTTPS](https://google.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.processContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 1);
+    assert.strictEqual(addedNodes[0].uri, "http://google.com");
+  });
+
+  test("ProcessContent deduplicates www and non-www variants of the same URL", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content =
+      "[Google](https://google.com) and [Google WWW](https://www.google.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.processContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 1);
+    assert.strictEqual(addedNodes[0].uri, "https://google.com");
+  });
+
+  test("ProcessContent deduplicates http and https with trailing slash variants", async () => {
+    const addedNodes: { uri: string; name: string; type: string }[] = [];
+    eventMonitor.on("AddNode", (uri: string, name: string, type: string) => {
+      addedNodes.push({ uri, name, type });
+    });
+
+    const content =
+      "[Site](https://example.com/) and [Site Alt](http://www.example.com)";
+    const fileUri = vscode.Uri.file("/path/to/readme.md");
+    await processor.processContent(fileUri, content);
+
+    assert.strictEqual(addedNodes.length, 1);
+    assert.strictEqual(addedNodes[0].uri, "https://example.com/");
+  });
 });

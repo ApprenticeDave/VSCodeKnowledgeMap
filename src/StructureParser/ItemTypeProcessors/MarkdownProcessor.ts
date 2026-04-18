@@ -33,15 +33,34 @@ export class MarkdownProcessor implements iLinker {
     });
   }
 
+  private normalizeUrl(url: string): string {
+    return url
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  }
+
   private extractLinks(content: string): Map<string, string> {
     const links = new Map<string, string>();
+    const canonicalToFirst = new Map<string, string>(); // canonical URL -> first encountered original URL
     const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     const matches = content.matchAll(linkRegex);
 
     for (const match of matches) {
       const linkName = match[1];
       const linkURL = match[2];
-      links.set(linkURL, linkName);
+      const canonical = this.normalizeUrl(linkURL);
+
+      if (!canonicalToFirst.has(canonical)) {
+        canonicalToFirst.set(canonical, linkURL);
+        links.set(linkURL, linkName);
+      } else {
+        Logger.log(
+          `Duplicate external link detected: "${linkURL}" matches existing link "${canonicalToFirst.get(canonical)}"`,
+          LogLevel.Warn
+        );
+      }
     }
 
     return links;
