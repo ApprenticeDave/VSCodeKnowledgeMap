@@ -115,6 +115,39 @@ suite("KnowledgeGraph Test Suite", () => {
     assert.strictEqual(graph.getEdges()[0].id, "edge-1");
   });
 
+  test("addEdge does not add a duplicate edge with the same id", () => {
+    const source = new Node("src-1", "Source", "file");
+    const target = new Node("tgt-1", "Target", "file");
+    graph.addNode(source);
+    graph.addNode(target);
+
+    const edge1 = new Edge("edge-1", source, target, "contains");
+    const edge2 = new Edge("edge-1", source, target, "contains");
+    graph.addEdge(edge1);
+    graph.addEdge(edge2);
+
+    assert.strictEqual(graph.getEdges().length, 1);
+  });
+
+  test("addEdge does not emit KnowledgeGraphEdgeAdded for a duplicate edge", () => {
+    let addedCount = 0;
+    eventMonitor.on(GraphEvents.KnowledgeGraphEdgeAdded, () => {
+      addedCount++;
+    });
+
+    const source = new Node("src-1", "Source", "file");
+    const target = new Node("tgt-1", "Target", "file");
+    graph.addNode(source);
+    graph.addNode(target);
+
+    const edge1 = new Edge("edge-1", source, target, "reference");
+    const edge2 = new Edge("edge-1", source, target, "reference");
+    graph.addEdge(edge1);
+    graph.addEdge(edge2);
+
+    assert.strictEqual(addedCount, 1);
+  });
+
   test("addEdge does not add edge if source node missing", () => {
     const source = new Node("src-1", "Source", "file");
     const target = new Node("tgt-1", "Target", "file");

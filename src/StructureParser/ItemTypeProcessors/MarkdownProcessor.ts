@@ -34,9 +34,11 @@ export class MarkdownProcessor implements iLinker {
   }
 
   private normalizeUrl(url: string): string {
+    // Normalizes any http/https URL to a canonical https:// form so that
+    // http vs https and www vs non-www variants resolve to the same node ID.
+    // Non-http(s) URLs (e.g. mailto:) are returned unchanged.
     return url
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
+      .replace(/^https?:\/\/(www\.)?/, "https://")
       .replace(/\/+$/, "")
       .toLowerCase();
   }
@@ -54,7 +56,9 @@ export class MarkdownProcessor implements iLinker {
 
       if (!canonicalToFirst.has(canonical)) {
         canonicalToFirst.set(canonical, linkURL);
-        links.set(linkURL, linkName);
+        // Use the canonical URL as the map key so all callers emit a stable
+        // node ID regardless of which protocol/www variant appeared first.
+        links.set(canonical, linkName);
       } else {
         Logger.log(
           `Duplicate external link detected: "${linkURL}" matches existing link "${canonicalToFirst.get(canonical)}"`,
