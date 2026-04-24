@@ -2,16 +2,22 @@
 
 Pre-release version of the knowledge and relationship tooling for Visual Studio which tracks relationships between concepts, files, and information within the folder that is open including sub folders.
 
+## What's New (1.0.1)
+
+- Packaging now uses `esbuild` for consistent, production-focused extension bundles.
+- VSIX package footprint was reduced from ~3608 files to 38 files, improving install and publish efficiency.
+- This release is a packaging optimization release; user-facing behavior remains the same.
+
 ## Requirements
 
-- Visual Studio Code 1.75 or newer (or editors compatible with VS Code 1.75+ APIs)
+- Visual Studio Code 1.95 or newer (or editors compatible with VS Code 1.95+ APIs)
 
 ## Quick Start
 
 Welcome! 👋🏻
 To get started install the extension either from [market place](https://marketplace.visualstudio.com/items?itemName=DavidRussell.vscodeknowledgemap) or
 
-```
+```bash
 code --install-extension DavidRussell.vscodeknowledgemap
 ```
 
@@ -29,14 +35,14 @@ Shows a graph of all the files in a workspace and their relationships relative t
 
 Currently extracts links out of markdown files and adds links to files using file fully qualified URI as the Unique Identifier. Also supports external references like http links and creates those as seperate nodes.
 
-```
+```markdown
     [Text](/users/username/desktop/test.md)
 ```
 
 Text: used for the node lable
 Link: is used for the uri unique identifier
 
-## Requirements
+## Dependencies
 
 This extension leverages the [3D Force Directed Graph](https://vasturiano.github.io/3d-force-graph/) javascript library. Thanks to [Vasco Asturiano](https://observablehq.com/@vasturiano) who created this library.
 

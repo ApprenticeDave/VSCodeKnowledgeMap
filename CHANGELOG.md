@@ -1,36 +1,24 @@
 # Change Log
 
-All notable changes to the "vscodeknowledgemap" extension will be documented in this file.
+All notable changes to the "vscodeknowledgemap" extension are documented in this file.
 
-## [Unreleased - 0.0.10]
+## [1.0.1] - 2026-04-24
 
-- Refactor to improve maintenance and modifications
-- In advertantly add the context menu to create the graph for a single item #fix 26
+### Changed
 
-## [Unreleased - 0.0.9]
+- Bundle the extension output with `esbuild` to improve packaging consistency.
+- Reduce packaged VSIX file count from ~3608 files to 38 files to make distribution lighter and faster.
 
-- Fixed Node not opening click
-- Fixed unpkg SHA issue preventing script loading
+### Notes
 
-## [Unreleased - 0.0.8]
+- This release focuses on packaging and delivery optimization. Runtime functionality is unchanged.
 
-- Added ignore list configuration support
-- Added config of number of files to process at a time.
-- Minor refactoring of code to make it easier to test and find issues
-- Secured code script includes
-- Added Mo Tests
-- Fixed issue with file processor executing before initial nodes are added.
+## [1.0.0] - 2026-04-23
 
-## [Unreleased - 0.0.7]
+### Added
 
-- Woops
+- Initial stable 1.0.0 release.
 
-## [Unreleased - 0.0.6]
+### Known Issues
 
-- Fixed Node Duplication when moving Panel
-- Added Icon
-- Base functionality is up and running
-
-Known Issues:
-
-- File Change updates currently not implemented
+- File change updates after initial graph generation are not yet implemented.
