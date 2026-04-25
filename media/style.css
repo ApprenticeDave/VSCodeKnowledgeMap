@@ -36,3 +36,195 @@ body {
     overflow-y: auto; /* Add this if you want to allow scrolling */
     visibility: hidden;
   }
+
+  /* ── Tag Panel ───────────────────────────────────────────────────────────── */
+
+  #tagPanel {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 100;
+    background-color: rgba(30, 30, 30, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 8px 10px;
+    min-width: 180px;
+    max-width: 260px;
+    color: var(--vscode-editor-foreground, #ccc);
+    font-size: 12px;
+    backdrop-filter: blur(4px);
+  }
+
+  .panel-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  #clusterControls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .cluster-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.15s;
+  }
+
+  .cluster-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .cluster-btn.active {
+    background: var(--vscode-button-background, #0e639c);
+    color: var(--vscode-button-foreground, #fff);
+    border-color: transparent;
+  }
+
+  #tagFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .tag-filter-btn {
+    background: rgba(0, 150, 255, 0.2);
+    border: 1px solid rgba(0, 150, 255, 0.4);
+    color: #7dd0ff;
+    border-radius: 12px;
+    padding: 1px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.15s;
+  }
+
+  .tag-filter-btn:hover {
+    background: rgba(0, 150, 255, 0.4);
+  }
+
+  /* ── Node Tag Editor ─────────────────────────────────────────────────────── */
+
+  #nodeTagEditor {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 6px;
+    margin-top: 4px;
+    position: relative;
+  }
+
+  #nodeTagEditor.hidden {
+    display: none;
+  }
+
+  #nodeTagEditorTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  #currentTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 6px;
+    min-height: 20px;
+  }
+
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(80, 200, 120, 0.25);
+    border: 1px solid rgba(80, 200, 120, 0.5);
+    color: #80e0a0;
+    border-radius: 12px;
+    padding: 1px 6px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .remove-tag-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 100, 100, 0.8);
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .remove-tag-btn:hover {
+    color: #ff5555;
+  }
+
+  .no-tags {
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+    font-size: 11px;
+  }
+
+  #addTagForm {
+    display: flex;
+    gap: 4px;
+  }
+
+  #tagInput {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 11px;
+    outline: none;
+  }
+
+  #tagInput:focus {
+    border-color: rgba(0, 150, 255, 0.6);
+  }
+
+  #addTagBtn {
+    background: var(--vscode-button-background, #0e639c);
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  #addTagBtn:hover {
+    opacity: 0.85;
+  }
+
+  #closeTagEditor {
+    position: absolute;
+    top: 4px;
+    right: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 2px;
+  }
+
+  #closeTagEditor:hover {
+    color: #fff;
+  }

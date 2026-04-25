@@ -12,6 +12,7 @@ export const GraphEvents = {
   DeleteNode: "DeleteNode",
   AddEdge: "AddEdge",
   RemoveEdge: "RemoveEdge",
+  UpdateNodeTags: "UpdateNodeTags",
 
   // Notifications: emitted by KnowledgeGraph,
   // consumed by KnowledgeMapViewProvider.initEvents()
@@ -21,6 +22,7 @@ export const GraphEvents = {
   KnowledgeGraphEdgeRemoved: "KnowledgeGraphEdgeRemoved",
   KnowledgeGraphEdgeUpdated: "KnowledgeGraphEdgeUpdated",
   KnowledgeGraphCleared: "KnowledgeGraphCleared",
+  KnowledgeGraphNodeTagsUpdated: "KnowledgeGraphNodeTagsUpdated",
 } as const;
 
 export type GraphEventName = (typeof GraphEvents)[keyof typeof GraphEvents];

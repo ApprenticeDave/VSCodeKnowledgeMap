@@ -4,6 +4,7 @@ export class Node {
   public id: string;
   public name?: string;
   public nodetype?: string;
+  public tags: string[] = [];
 
   constructor(idOrJson: string, name?: string, nodetype?: string) {
     if (Utils.IsJson(idOrJson)) {
@@ -12,6 +13,9 @@ export class Node {
       this.name = obj.name;
       if (obj.nodetype) {
         this.nodetype = obj.nodetype;
+      }
+      if (Array.isArray(obj.tags)) {
+        this.tags = obj.tags;
       }
     } else {
       this.id = idOrJson;

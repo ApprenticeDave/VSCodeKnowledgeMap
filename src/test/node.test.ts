@@ -62,6 +62,29 @@ suite("Extension - Node Test Suite", () => {
     assert.equal(node.nodetype === "folder", true);
   });
 
+  test("Node has empty tags array by default", () => {
+    const node = new Node("1", "Test", "file");
+    assert.deepStrictEqual(node.tags, []);
+  });
+
+  test("Node constructor initializes JSON with tags correctly", () => {
+    const nodeToJson = {
+      id: "5",
+      name: "Tagged Node",
+      nodetype: "file",
+      tags: ["important", "todo"],
+    };
+    const node = new Node(JSON.stringify(nodeToJson));
+    assert.deepStrictEqual(node.tags, ["important", "todo"]);
+  });
+
+  test("Node JSON without tags field defaults to empty array", () => {
+    const nodeToJson = { id: "6", name: "No Tags", nodetype: "file" };
+    const node = new Node(JSON.stringify(nodeToJson));
+    assert.deepStrictEqual(node.tags, []);
+  });
+
+
   test("Creating multiple Node instances performs under threshold", () => {
     const NUM_NODES = 10000;
     const startTime = performance.now();

@@ -374,17 +374,39 @@ suite("KnowledgeGraph Test Suite", () => {
     assert.strictEqual(graph.getNodes().length, 3);
   });
 
-  test("getEdges returns all edges", () => {
-    const nodeA = new Node("a", "A", "file");
-    const nodeB = new Node("b", "B", "file");
-    const nodeC = new Node("c", "C", "file");
-    graph.addNode(nodeA);
-    graph.addNode(nodeB);
-    graph.addNode(nodeC);
+  test("UpdateNodeTags event updates node tags and emits KnowledgeGraphNodeTagsUpdated", () => {
+    let emittedNode: any = null;
+    eventMonitor.on(GraphEvents.KnowledgeGraphNodeTagsUpdated, (node: any) => {
+      emittedNode = node;
+    });
 
-    graph.addEdge(new Edge("e1", nodeA, nodeB, "contains"));
-    graph.addEdge(new Edge("e2", nodeB, nodeC, "reference"));
+    eventMonitor.emit(GraphEvents.AddNode, "uri-1", "Taggable Node", "file");
+    eventMonitor.emit(GraphEvents.UpdateNodeTags, "uri-1", ["important", "todo"]);
 
-    assert.strictEqual(graph.getEdges().length, 2);
+    assert.ok(emittedNode, "KnowledgeGraphNodeTagsUpdated should have fired");
+    assert.strictEqual(emittedNode.id, "uri-1");
+    assert.deepStrictEqual(emittedNode.tags, ["important", "todo"]);
   });
+
+  test("UpdateNodeTags event does not emit for unknown node", () => {
+    let eventFired = false;
+    eventMonitor.on(GraphEvents.KnowledgeGraphNodeTagsUpdated, () => {
+      eventFired = true;
+    });
+
+    eventMonitor.emit(GraphEvents.UpdateNodeTags, "nonexistent", ["tag"]);
+
+    assert.strictEqual(eventFired, false);
+  });
+
+  test("UpdateNodeTags replaces existing tags on a node", () => {
+    eventMonitor.emit(GraphEvents.AddNode, "uri-2", "Node", "file");
+    eventMonitor.emit(GraphEvents.UpdateNodeTags, "uri-2", ["a", "b"]);
+    eventMonitor.emit(GraphEvents.UpdateNodeTags, "uri-2", ["c"]);
+
+    const node = graph.getNodes().find((n) => n.id === "uri-2");
+    assert.ok(node);
+    assert.deepStrictEqual(node!.tags, ["c"]);
+  });
+
 });

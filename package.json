@@ -49,6 +49,10 @@
       {
         "command": "vscodeknowledgemap.OpenKnowledgeMapAt",
         "title": "Display Map For.."
+      },
+      {
+        "command": "vscodeknowledgemap.addTagToFile",
+        "title": "Add Tag in Knowledge Map"
       }
     ],
     "menus": {
@@ -56,6 +60,11 @@
         {
           "command": "vscodeknowledgemap.OpenKnowledgeMapAt",
           "when": "resourceScheme == 'file' || resourceScheme == 'folder'",
+          "group": "KnowledgeMapGroup"
+        },
+        {
+          "command": "vscodeknowledgemap.addTagToFile",
+          "when": "resourceScheme == 'file'",
           "group": "KnowledgeMapGroup"
         }
       ]
