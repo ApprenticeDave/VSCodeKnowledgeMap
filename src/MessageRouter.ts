@@ -9,13 +9,16 @@ import * as path from "path";
 type WebviewMessage =
   | { command: "log"; text: string }
   | { command: "openNode"; filePath: string }
-  | { command: "WebViewLoaded" };
+  | { command: "WebViewLoaded" }
+  | { command: "addTag"; nodeId: string; tag: string }
+  | { command: "removeTag"; nodeId: string; tag: string }
+  | { command: "requestAllTags" };
 
 /**
  * Routes messages between the webview and the extension host.
  *
  * - Inbound: handles messages sent from the WebGL script via
- *   `webview.onDidReceiveMessage` (log, openNode, WebViewLoaded).
+ *   `webview.onDidReceiveMessage` (log, openNode, WebViewLoaded, addTag, removeTag, requestAllTags).
  * - Outbound: wires KnowledgeGraph events from the EventMonitor to
  *   `webview.postMessage` calls so the graph view stays in sync.
  *
@@ -29,10 +32,22 @@ export class MessageRouter {
    * @param onWebViewLoaded  Callback invoked when the WebViewLoaded message is
    *   received. The caller is responsible for (re-)creating the KnowledgeGraph,
    *   ItemProcessor, and triggering a workspace scan.
+   * @param onAddTag  Callback invoked when the webview requests a tag be added.
+   * @param onRemoveTag  Callback invoked when the webview requests a tag be removed.
+   * @param onRequestAllTags  Callback invoked when the webview requests all used tags.
    */
   constructor(
     private readonly eventMonitor: EventMonitor,
     private readonly onWebViewLoaded: () => Promise<void>,
+    private readonly onAddTag: (
+      nodeId: string,
+      tag: string,
+    ) => Promise<void> = async () => {},
+    private readonly onRemoveTag: (
+      nodeId: string,
+      tag: string,
+    ) => Promise<void> = async () => {},
+    private readonly onRequestAllTags: () => string[] = () => [],
   ) {}
 
   /**
@@ -77,6 +92,25 @@ export class MessageRouter {
           // across hide/show cycles before re-registering (fixes #36).
           this.eventMonitor.removeAllListeners();
           await this.onWebViewLoaded();
+          break;
+
+        case "addTag":
+          if (message.nodeId && message.tag) {
+            await this.onAddTag(message.nodeId, message.tag);
+          }
+          break;
+
+        case "removeTag":
+          if (message.nodeId && message.tag) {
+            await this.onRemoveTag(message.nodeId, message.tag);
+          }
+          break;
+
+        case "requestAllTags":
+          webview.postMessage({
+            command: "allTagsData",
+            allTags: this.onRequestAllTags(),
+          });
           break;
       }
     });
@@ -157,6 +191,20 @@ export class MessageRouter {
         });
       }
     });
+
+    this.eventMonitor.on(
+      GraphEvents.KnowledgeGraphNodeTagsUpdated,
+      (node) => {
+        if (webviewView) {
+          webviewView.webview.postMessage({
+            command: "nodeTagsUpdated",
+            nodeId: node.id,
+            tags: node.tags,
+            allTags: this.onRequestAllTags(),
+          });
+        }
+      },
+    );
   }
 
   /**

@@ -20,7 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
     rootUris = vscode.workspace.workspaceFolders?.map((folder) => folder.uri);
   }
 
-  knowledgeMapProvider = new KnowledgeMapViewProvider(context.extensionUri, rootUris);
+  knowledgeMapProvider = new KnowledgeMapViewProvider(context.extensionUri, rootUris, context);
   // Register the Knowledge Map View Provider
   const provider = vscode.window.registerWebviewViewProvider(
     KnowledgeMapViewProvider.viewType,
@@ -32,8 +32,58 @@ export async function activate(context: vscode.ExtensionContext) {
     knowledgeMapProvider.updateRootUris(rootUris);
   });
 
+  const addTagToFileCommand = vscode.commands.registerCommand(
+    'vscodeknowledgemap.addTagToFile',
+    async (uri: vscode.Uri) => {
+      const nodeId = uri?.fsPath ?? vscode.window.activeTextEditor?.document.uri.fsPath;
+      if (!nodeId) {
+        vscode.window.showWarningMessage("No file selected to tag.");
+        return;
+      }
+
+      const allTags = knowledgeMapProvider.getAllUsedTags();
+      const tagItems: vscode.QuickPickItem[] = allTags.map((t) => ({
+        label: t,
+        description: "previously used",
+      }));
+
+      const picked = await vscode.window.showQuickPick(
+        [...tagItems, { label: "$(add) Enter a new tag...", alwaysShow: true }],
+        {
+          placeHolder: "Select or type a tag to apply",
+          canPickMany: false,
+          matchOnDescription: true,
+        },
+      );
+
+      if (!picked) {
+        return;
+      }
+
+      let tag: string;
+      if (picked.label.startsWith("$(add)")) {
+        const input = await vscode.window.showInputBox({
+          prompt: "Enter a new tag",
+          placeHolder: "e.g. important, todo, reference",
+          validateInput: (v) =>
+            v.trim().length === 0 ? "Tag cannot be empty" : undefined,
+        });
+        if (!input) {
+          return;
+        }
+        tag = input.trim();
+      } else {
+        tag = picked.label;
+      }
+
+      await knowledgeMapProvider.addTagToNode(nodeId, tag);
+      vscode.window.showInformationMessage(`Tag "${tag}" added to ${nodeId.split(/[\\/]/).pop() ?? nodeId}`);
+    },
+  );
+
   context.subscriptions.push(provider);
   context.subscriptions.push(openKXToFileCommand);
+  context.subscriptions.push(addTagToFileCommand);
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders((event) => {

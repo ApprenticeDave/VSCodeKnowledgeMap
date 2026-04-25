@@ -32,10 +32,18 @@ const initData = {
   links: [],
 };
 
+// Tag state
+let clusterMode = "type"; // "type" | "tag"
+let allUsedTags = [];
+let selectedNodeForTagging = null;
+
 const elem = document.getElementById("glCanvas");
 const backgroundcolour = window
   .getComputedStyle(document.body)
   .getPropertyValue("--vscode-editor-background");
+
+// Build tag panel UI
+buildTagPanel();
 
 // Handle messages from the extension
 window.addEventListener("message", (event) => {
@@ -62,6 +70,12 @@ window.addEventListener("message", (event) => {
     case "setBackgroundColor":
       document.body.style.backgroundColor = message.color;
       break;
+    case "nodeTagsUpdated":
+      handleNodeTagsUpdated(message.nodeId, message.tags, message.allTags);
+      break;
+    case "allTagsData":
+      updateAllTagsUI(message.allTags);
+      break;
   }
 });
 
@@ -74,6 +88,8 @@ window.addEventListener("keydown", (event) => {
 
 function clearGraph() {
   Graph.graphData(initData);
+  selectedNodeForTagging = null;
+  updateNodeTagEditorUI();
   sendLogMessage(`Script - Cleared Graph`, "Info");
 }
 
@@ -84,7 +100,9 @@ function addNode(newNode) {
   const graphnode = {
     id: newNode.id,
     name: newNode.name,
-    group: newNode.nodetype,
+    group: resolveGroup(newNode),
+    tags: newNode.tags || [],
+    nodetype: newNode.nodetype,
   };
 
   if (nodes.find((n) => n.id === newNode.id) === undefined) {
@@ -154,6 +172,10 @@ function removeNode(node) {
 
   const index = nodes.findIndex((n) => n.id === node.id);
   if (index > -1) {
+    if (selectedNodeForTagging && selectedNodeForTagging.id === node.id) {
+      selectedNodeForTagging = null;
+      updateNodeTagEditorUI();
+    }
     removeNodeEdges(node);
     nodes.splice(index, 1);
     try {
@@ -220,6 +242,225 @@ function removeEdge(edge) {
     sendLogMessage(`Script - Edge not found`, "Info");
   }
 }
+
+// ── Tag support ──────────────────────────────────────────────────────────────
+
+/**
+ * Returns the group value used by the force-graph for colour coding and
+ * clustering.  When clusterMode is "tag" the primary tag is used; when it is
+ * "type" the node type is used.
+ */
+function resolveGroup(node) {
+  if (clusterMode === "tag" && node.tags && node.tags.length > 0) {
+    return node.tags[0];
+  }
+  return node.nodetype || node.group || "unknown";
+}
+
+/**
+ * Rebuild group values for every node in the graph and refresh the display.
+ * Called whenever the cluster mode is toggled.
+ */
+function refreshAllNodeGroups() {
+  const { nodes, links } = Graph.graphData();
+  nodes.forEach((n) => {
+    n.group = resolveGroup(n);
+  });
+  Graph.graphData({ nodes, links });
+}
+
+/** Handle a nodeTagsUpdated message from the extension. */
+function handleNodeTagsUpdated(nodeId, tags, allTagsList) {
+  const { nodes, links } = Graph.graphData();
+  const node = nodes.find((n) => n.id === nodeId);
+  if (node) {
+    node.tags = tags;
+    node.group = resolveGroup(node);
+    Graph.graphData({ nodes, links });
+  }
+
+  // Keep selected node in sync
+  if (selectedNodeForTagging && selectedNodeForTagging.id === nodeId) {
+    selectedNodeForTagging.tags = tags;
+    updateNodeTagEditorUI();
+  }
+
+  if (allTagsList) {
+    updateAllTagsUI(allTagsList);
+  }
+}
+
+/** Populate the datalist with all previously used tags. */
+function updateAllTagsUI(tags) {
+  allUsedTags = tags || [];
+  const datalist = document.getElementById("tagSuggestions");
+  if (datalist) {
+    datalist.innerHTML = "";
+    allUsedTags.forEach((t) => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      datalist.appendChild(opt);
+    });
+  }
+
+  // Refresh tag filter buttons
+  const tagFilters = document.getElementById("tagFilters");
+  if (tagFilters) {
+    tagFilters.innerHTML = "";
+    allUsedTags.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.className = "tag-filter-btn";
+      btn.textContent = t;
+      btn.title = `Filter by tag: ${t}`;
+      btn.addEventListener("click", () => highlightByTag(t));
+      tagFilters.appendChild(btn);
+    });
+  }
+}
+
+// Highlight colours used when filtering by tag
+const HIGHLIGHT_COLOR = "#00ff88";
+const DIMMED_COLOR = "rgba(100,100,100,0.2)";
+
+/** Highlight nodes that have the given tag (dim all others). */
+function highlightByTag(tag) {
+  const { nodes } = Graph.graphData();
+  nodes.forEach((n) => {
+    n.__highlighted = n.tags && n.tags.includes(tag);
+  });
+  // Force a re-render by triggering a small update
+  Graph.nodeColor((n) => {
+    if (n.__highlighted === undefined) {
+      return n.color;
+    }
+    return n.__highlighted ? HIGHLIGHT_COLOR : DIMMED_COLOR;
+  });
+  sendLogMessage(`Script - Highlighted nodes with tag: ${tag}`, "Info");
+}
+
+/** Build the persistent tag panel overlay. */
+function buildTagPanel() {
+  const panel = document.createElement("div");
+  panel.id = "tagPanel";
+  panel.innerHTML = `
+    <div id="clusterControls">
+      <span class="panel-label">Cluster by:</span>
+      <button id="clusterByType" class="cluster-btn active" title="Cluster nodes by type">Type</button>
+      <button id="clusterByTag" class="cluster-btn" title="Cluster nodes by their first tag">Tag</button>
+    </div>
+    <div id="tagFilters"></div>
+    <div id="nodeTagEditor" class="hidden">
+      <div id="nodeTagEditorTitle" class="panel-label"></div>
+      <div id="currentTags"></div>
+      <div id="addTagForm">
+        <input id="tagInput" list="tagSuggestions" placeholder="Add tag…" autocomplete="off">
+        <datalist id="tagSuggestions"></datalist>
+        <button id="addTagBtn" title="Add tag">＋</button>
+      </div>
+      <button id="closeTagEditor" title="Close">✕</button>
+    </div>
+  `;
+  document.body.appendChild(panel);
+
+  // Cluster mode buttons
+  document.getElementById("clusterByType").addEventListener("click", () => {
+    clusterMode = "type";
+    document.getElementById("clusterByType").classList.add("active");
+    document.getElementById("clusterByTag").classList.remove("active");
+    refreshAllNodeGroups();
+    Graph.nodeAutoColorBy("group");
+    sendLogMessage(`Script - Cluster mode: type`, "Info");
+  });
+
+  document.getElementById("clusterByTag").addEventListener("click", () => {
+    clusterMode = "tag";
+    document.getElementById("clusterByTag").classList.add("active");
+    document.getElementById("clusterByType").classList.remove("active");
+    refreshAllNodeGroups();
+    Graph.nodeAutoColorBy("group");
+    sendLogMessage(`Script - Cluster mode: tag`, "Info");
+  });
+
+  // Add tag button
+  document.getElementById("addTagBtn").addEventListener("click", () => {
+    const input = document.getElementById("tagInput");
+    const tag = input.value.trim();
+    if (tag && selectedNodeForTagging) {
+      sendAddTag(selectedNodeForTagging.id, tag);
+      input.value = "";
+    }
+  });
+
+  // Allow pressing Enter in the tag input
+  document.getElementById("tagInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      document.getElementById("addTagBtn").click();
+    }
+  });
+
+  // Close tag editor
+  document.getElementById("closeTagEditor").addEventListener("click", () => {
+    selectedNodeForTagging = null;
+    updateNodeTagEditorUI();
+  });
+}
+
+/** Refresh the node tag editor panel for the currently selected node. */
+function updateNodeTagEditorUI() {
+  const editor = document.getElementById("nodeTagEditor");
+  if (!editor) {
+    return;
+  }
+  if (!selectedNodeForTagging) {
+    editor.classList.add("hidden");
+    return;
+  }
+
+  editor.classList.remove("hidden");
+  document.getElementById("nodeTagEditorTitle").textContent =
+    selectedNodeForTagging.name || selectedNodeForTagging.id;
+
+  const currentTagsEl = document.getElementById("currentTags");
+  currentTagsEl.innerHTML = "";
+
+  const tags = selectedNodeForTagging.tags || [];
+  if (tags.length === 0) {
+    const empty = document.createElement("span");
+    empty.className = "no-tags";
+    empty.textContent = "No tags";
+    currentTagsEl.appendChild(empty);
+  } else {
+    tags.forEach((t) => {
+      const chip = document.createElement("span");
+      chip.className = "tag-chip";
+      const tagText = document.createTextNode(t);
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-tag-btn";
+      removeBtn.title = "Remove tag";
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", () => {
+        sendRemoveTag(selectedNodeForTagging.id, t);
+      });
+      chip.appendChild(tagText);
+      chip.appendChild(removeBtn);
+      currentTagsEl.appendChild(chip);
+    });
+  }
+}
+
+function sendAddTag(nodeId, tag) {
+  if (typeof vscode !== "undefined") {
+    vscode.postMessage({ command: "addTag", nodeId, tag });
+  }
+}
+
+function sendRemoveTag(nodeId, tag) {
+  if (typeof vscode !== "undefined") {
+    vscode.postMessage({ command: "removeTag", nodeId, tag });
+  }
+}
+
+// ── Graph helpers ─────────────────────────────────────────────────────────────
 
 function sendOpenNodeMessage(node) {
   if (typeof vscode === "undefined") {
@@ -334,6 +575,12 @@ const Graph = ForceGraph3D({
     return sprite;
   })
   .onNodeClick((node) => {
+    selectedNodeForTagging = node;
+    updateNodeTagEditorUI();
+    // Request all tags to keep the datalist up to date
+    if (typeof vscode !== "undefined") {
+      vscode.postMessage({ command: "requestAllTags" });
+    }
     sendOpenNodeMessage(node);
   })
   .linkPositionUpdate((sprite, { start, end }) => {

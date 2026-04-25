@@ -73,6 +73,20 @@ export class KnowledgeGraph {
     this.eventMonitor.on(GraphEvents.RemoveEdge, (edge: Edge) => {
       this.removeEdge(edge);
     });
+
+    this.eventMonitor.on(
+      GraphEvents.UpdateNodeTags,
+      (nodeId: string, tags: string[]) => {
+        const node = this.nodes.get(nodeId);
+        if (node) {
+          node.tags = tags;
+          this.eventMonitor.notifyChange(
+            GraphEvents.KnowledgeGraphNodeTagsUpdated,
+            node,
+          );
+        }
+      },
+    );
   }
 
   public addNode(node: Node): void {
